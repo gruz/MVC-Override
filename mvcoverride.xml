@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension version="2.5" type="plugin" group="system" method="upgrade">
+  <name>PLG_SYSTEM_MVCOVERRIDE</name>
+  <author>Gruz</author>
+  <creationDate>2016-05-20</creationDate>
+  <copyright>Copyright (C) 2004-2016 Gruz All rights reserved.</copyright>
+  <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
+  <authorEmail>arygroup@gmail.com</authorEmail>
+  <authorUrl>http://gruz.org.ua/en/about-joomla/29-joomla-extensions/30-joomla-25-mvc-override-modify-core-behavour-without-modifing-core-files.html</authorUrl>
+  <version>1.0.12</version>
+  <description>PLG_SYSTEM_MVCOVERRIDE_DESC</description>
+  <files>
+    
+    
+    
+    
+    
+    
+  <folder>code</folder><folder>extensions</folder><folder>language</folder><filename>README.md</filename><filename>index.html</filename><filename plugin="mvcoverride">mvcoverride.php</filename><filename>scriptfile.php</filename></files>
+  <scriptfile>scriptfile.php</scriptfile>
+  <config>
+    <fields name="params" addfieldpath="/libraries/gjfields">
+      <fieldset name="basic">
+        <field name="@version" type="nn_version" extension="AUTOREADMORE" xml="/plugins/system/mvcoverride/mvcoverride.xml"/>
+        <field type="list" name="bruteMode" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_BRUTE_MODE" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_BRUTE_MODE_DESC" default="0">
+          <option value="0">JDISABLED</option>
+          <option value="1">JENABLED</option>
+        </field>
+        <!--
+        <field maxrepeatlength="1" type1="variablefield" type="list" name="switchnormal" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_SWITCH_ACTIVE_RULES" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_SWITCH_ACTIVE_RULES_DESC" default="1">
+          <option value="0">Show 1</option>
+          <option value="1">Hide</option>
+          <option value="2">Show 2</option>
+        </field>
+        <field maxrepeatlength="1" type="variablefield" basetype="list" name="switch" label="####" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_SWITCH_ACTIVE_RULES_DESC" default="1">
+          <option value="0">Show 1</option>
+          <option value="1">Hide</option>
+          <option value="2">Show 2</option>
+        </field>
+        <field name="{switchPanel4" maxrepeatlength="1" type="variablefield" basetype="toggler" param="switch" value="0,2"/>
+			<field name="textparams1" maxrepeatlength="5" type="variablefield" basetype="textarea" default="" description="" label="Textparams 1" rows="1" cols="1"/>
+        <field name="switchPanel4}" maxrepeatlength="1" type="variablefield" basetype="toggler"/>
+
+			<field name="textparams2" maxrepeatlength="5" type="variablefield" basetype="textarea" default="" description="" label="Textparams 2" rows="1" cols="1"/>
+        <field type="list" name="autooverride" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_AUTOOVERRIDE" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_AUTOOVERRIDE_DESC" default="1">
+          <option value="0">JDISABLED</option>
+          <option value="1">JENABLED</option>
+        </field>
+        <field name="{switchPanel4"  type="toggler" param="autooverride" value="1"/>
+			<field name="classSuffix" type="text" default="Base" description="" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_CLASS_SUFFIX"  />
+        <field name="switchPanel4}" type="toggler"/>
+!-->
+        <field name="showDebug" type="list" default="1" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_SHOW_DEBUG_INFO" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_SHOW_DEBUG_INFO_DESC">
+          <option value="0">JNEVER</option>
+          <option value="1">PLG_SYSTEM_MVCOVERRIDE_OPTION_BACKEND_ONLY</option>
+          <option value="2">PLG_SYSTEM_MVCOVERRIDE_OPTION_ALWAYS</option>
+        </field>
+        <field name="{overridegroup" length="" maxrepeatlength="" type="variablefield" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_DEFAULT_RULE_GROUP_NAME" basetype="group"/>
+        <field name="ruleEnabled" type="variablefield" basetype="list" maxrepeatlength="1" default="1" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_RULE_ENABLED" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_RULE_ENABLED_DESC">
+          <option value="1">JENABLED</option>
+          <option value="0">JDISABLED</option>
+        </field>
+        <field maxrepeatlength="1" type="variablefield" basetype="list" name="textorfields" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_SWITCH_ACTIVE_RULES" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_SWITCH_ACTIVE_RULES_DESC" default="1">
+          <option value="0">PLG_SYSTEM_MVCOVERRIDE_OPTION_TEXTAREA</option>
+          <option value="1">PLG_SYSTEM_MVCOVERRIDE_OPTION_FIELDS</option>
+        </field>
+        <field name="{switchPanel2" maxrepeatlength="1" type="variablefield" basetype="toggler" param="textorfields" value="0"/>
+        <field name="textparams" maxrepeatlength="1" type="variablefield" basetype="textarea" default="" description="" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_TEXTAREA" class="textarea"/>
+        <field name="switchPanel2}" maxrepeatlength="1" type="variablefield" basetype="toggler"/>
+        <field name="{switchPanel3" maxrepeatlength="1" type="variablefield" basetype="toggler" param="textorfields" value="1"/>
+        <field name="basePath" maxrepeatlength="1" type="variablefield" basetype="text" size="60" default="components/com_content/views/article/view.html.php" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_BASECLASSPATH" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_BASECLASSPATH_DESC"/>
+        <field name="overridePath" maxrepeatlength="1" type="variablefield" basetype="text" size="60" default="com_content/views/article/view.html.php" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_OVERRIDECLASSPATH" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_OVERRIDECLASSPATH_DESC"/>
+        <field name="className" maxrepeatlength="1" type="variablefield" basetype="text" size="30" default="" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_BASECLASSNAME" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_BASECLASSNAME_DESC"/>
+        <field name="option" maxrepeatlength="1" type="variablefield" basetype="text" size="30" default="com_content" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_OPTION" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_OPTION_DESC"/>
+        <field name="scope" maxrepeatlength="1" type="variablefield" basetype="list" default="site" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_SCOPE" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_SCOPE_DESC">
+          <option value="admin">PLG_SYSTEM_MVCOVERRIDE_OPTION_ADMIN</option>
+          <option value="site">PLG_SYSTEM_MVCOVERRIDE_OPTION_SITE</option>
+          <option value="both">PLG_SYSTEM_MVCOVERRIDE_OPTION_BOTH</option>
+        </field>
+        <field name="changePrivate" maxrepeatlength="1" type="variablefield" basetype="list" default="0" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_MAKEEXTENDABLE" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_MAKEEXTENDABLE_DESC">
+          <option value="0">JNO</option>
+          <option value="1">JYES</option>
+        </field>
+        <field name="includes" maxrepeatlength="1" type="variablefield" basetype="textarea" cols="31" default="" label="PLG_SYSTEM_MVCOVERRIDE_LABEL_SUPPORTINGFILES" description="PLG_SYSTEM_MVCOVERRIDE_LABEL_SUPPORTINGFILES_DESC"/>
+        <field name="switchPanel3}" maxrepeatlength="1" type="variablefield" basetype="toggler"/>
+        <!--
+-->
+        <field name="overridegroup}" type="variablefield" basetype="group"/>
+      </fieldset>
+    </fields>
+  </config>
+  
+<updateservers><servers type="extension" priority="1" name="mvcoverride">http://gruz.org.ua/index.php?option=com_ars&amp;view=update&amp;task=stream&amp;format=xml&amp;id=1&amp;dummy=extension.xml</servers></updateservers></extension>
