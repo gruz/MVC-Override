@@ -69,8 +69,7 @@ class JFormFieldCategoryext extends JFormFieldCategory
 		$published = (string) $this->element['published'];
 
 		// Load the category options for a given extension.
-		if (!empty($extension))
-		{
+		if (!empty($extension)) {
 			switch ($extension) {
 				case 'com_k2':
 					try {
@@ -117,6 +116,9 @@ class JFormFieldCategoryext extends JFormFieldCategory
 
 					break;
 				default :
+					if (strpos($extension,'com_')!==0) {
+						$extension = 'com_'.$extension;
+					}
 
 					// Filter over published state or not depending upon if it is present.
 					if ($published)

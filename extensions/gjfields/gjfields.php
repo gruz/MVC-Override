@@ -21,7 +21,7 @@ class JFormFieldGJFields extends JFormField {
 			$app->set($this->type.'_initialized',true);
 
 
-			$url_to_assets = '/libraries/gjfields/';
+			$url_to_assets = JURI::root().'/libraries/gjfields/';
 			$path_to_assets = JPATH_ROOT.'/libraries/gjfields/';
 			$doc = JFactory::getDocument();
 

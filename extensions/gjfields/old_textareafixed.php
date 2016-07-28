@@ -31,12 +31,30 @@ class JFormFieldTextareafixed extends JFormFieldTextarea	{
 	 */
 	function getInput()
 	{
-		if (empty($this->value)) {
-			$this->value = JText::_(JText::_($this->element['default']).$this->Addition('default'));
+
+		// Initialize some field attributes.
+		$class		= $this->element['class'] ? ' class="'.(string) $this->element['class'].'"' : '';
+		$disabled	= ((string) $this->element['disabled'] == 'true') ? ' disabled="disabled"' : '';
+		$columns	= $this->element['cols'] ? ' cols="'.(int) $this->element['cols'].'" style="width:inherit;"' : '';
+		$rows		= $this->element['rows'] ? ' rows="'.(int) $this->element['rows'].'"' : '';
+
+		// Initialize JavaScript field attributes.
+		$onchange	= $this->element['onchange'] ? ' onchange="'.(string) $this->element['onchange'].'"' : '';
+
+		$this->element['default'] = JText::_($this->element['default']).$this->Addition('default');
+		//~ // Used for testing default
+		//~ if (empty($this->value )) {
+			//~ $this->value = $this->element['default'];
+		//~ }
+		if ($this->value == '') { $this->value = (string)$this->element['default'] ;}
+		if ((string)$this->element['default'] == $this->value || (string)$this->element['default'] == JText::_($this->value)) {
+			$this->value = JText::_($this->value);
+			$this->value = str_replace('\n',PHP_EOL,$this->value);
 		}
-		$output = parent::getInput();
-		$output .= $this->Addition('input');
-		return $output;
+		return '<textarea name="'.$this->name.'" id="'.$this->id.'"' .
+				$columns.$rows.$class.$disabled.$onchange.'>' .
+				htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8') .
+				'</textarea>';
 	}
 
 	public function getLabel()

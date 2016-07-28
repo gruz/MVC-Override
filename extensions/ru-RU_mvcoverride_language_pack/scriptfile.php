@@ -1,4 +1,9 @@
 <?php
+/*
+ * @author Gruz <arygroup@gmail.com>
+ * @copyright	Copyleft - All rights reversed
+ * @license GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
+*/
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 

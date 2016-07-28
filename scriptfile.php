@@ -6,7 +6,9 @@
  */
 // No direct access to this file
 defined('_JEXEC') or die('Restricted access');
-class plgsystemmvcoverrideInstallerScript {
+if (!class_exists('ScriptAry')) { include dirname(__FILE__).'/scriptary.php';}
+
+class plgsystemmvcoverrideInstallerScript extends ScriptAry {
 	/**
 	 * method to install the component
 	 *
