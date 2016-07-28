@@ -487,6 +487,15 @@ else
 					continue;
 				}
 
+				// Do not run override if current option and the default path option are different
+				// Avoid loading classes when not needed
+				preg_match('~.*/(com_[^/]*)/.*~Ui', $originalFilePath, $matches);
+
+				if (!empty($matches[1]) && $matches[1] != $option )
+				{
+					continue;
+				}
+
 				// Include the original code and replace class name add a Default on
 				$bufferFile = file_get_contents($originalFilePath);
 
