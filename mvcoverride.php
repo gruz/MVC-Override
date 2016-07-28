@@ -515,7 +515,7 @@ else
 				preg_match_all('/JPATH_COMPONENT(_SITE|_ADMINISTRATOR)|JPATH_COMPONENT/i', $bufferOverrideFile, $definesSourceOverride);
 
 				// Append "Default" to the class name (ex. ClassNameDefault). We insert the new class name into the original regex match to get
-				$rx = '/class *[a-z0-9]* *(extends|{)/i';
+				$rx = '/class *[a-z0-9]* *(extends|{|\n)/i';
 
 				preg_match($rx, $bufferFile, $classes);
 
@@ -529,7 +529,7 @@ else
 
 				$originalClass = $parts[1];
 
-				$replaceClass = $originalClass . 'Default';
+				$replaceClass = trim($originalClass) . 'Default';
 
 				if (count($definesSourceOverride[0]))
 				{
