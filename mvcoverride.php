@@ -490,6 +490,12 @@ else
 				// Include the original code and replace class name add a Default on
 				$bufferFile = file_get_contents($originalFilePath);
 
+				if (strpos($originalFilePath, '/controllers/') !== false )
+				{
+					$temp = explode('/controllers/', $originalFilePath);
+					require_once $temp[0] . '/controller.php';
+				}
+
 				// Detect if source file use some constants
 				preg_match_all('/JPATH_COMPONENT(_SITE|_ADMINISTRATOR)|JPATH_COMPONENT/i', $bufferFile, $definesSource);
 
