@@ -312,11 +312,11 @@ else
 			);
 
 			// Determine the class name or use the given class
-			$rx = '/class *[a-z0-9]* *(extends|{)/i';
+			$rx = '/class *[a-z0-9]* *(extends|{|\n)/i';
 
 			if ($override['className'] != '')
 			{
-				$rx = '/class *' . $override['className'] . ' *(extends|{)/i';
+				$rx = '/class *' . $override['className'] . ' *(extends|{|\n)/i';
 			}
 
 			preg_match($rx, $buffer, $classes);
@@ -326,6 +326,9 @@ else
 				$rx = '/class *[a-z0-9]*/i';
 				preg_match($rx, $buffer, $classes);
 			}
+
+			$classes = array_map('trim', $classes);
+
 			// The regex matching will return a phrase such as "class ClassName {" so we break it into individual words
 			$name = explode(' ', $classes[0]);
 
@@ -590,7 +593,7 @@ else
 			$buffer = file_get_contents($filePath);
 
 			// Get the class name
-			$rx = '/class *[a-z0-9]* *(extends|{)/i';
+			$rx = '/class *[a-z0-9]* *(extends|{|\n)/i';
 			preg_match($rx, $buffer, $classes);
 
 			if (empty($classes))
@@ -603,6 +606,8 @@ else
 			{
 				return null;
 			}
+
+			$classes = array_map('trim', $classes);
 
 			$name = explode(' ', $classes[0]);
 
