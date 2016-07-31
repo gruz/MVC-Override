@@ -462,7 +462,7 @@ else
 			{
 				if (JFolder::exists($codefolder))
 				{
-					$files = str_replace($codefolder, '', JFolder::files($codefolder, '.', true, true));
+					$files = str_replace($codefolder, '', JFolder::files($codefolder, '.php', true, true));
 					$files = array_fill_keys($files, $codefolder);
 					$files_to_override = array_merge($files_to_override, $files);
 				}
