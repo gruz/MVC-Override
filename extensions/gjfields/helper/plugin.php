@@ -86,6 +86,34 @@ class JPluginGJFields extends JPlugin {
 
 
 	/**
+	 * Gets defaultAttion default value
+	 *
+	 * @param   string  $addition  defaultAddition field attribute value
+	 *
+	 * @return   string  Default addition script result
+	 */
+	public function getDefaultAddtion($addition)
+	{
+		$addition = explode(';$',$addition);
+		$text = '';
+
+		if (file_exists(JPATH_SITE.'/'.$addition[0]) && isset($addition[1]))
+		{
+			require JPATH_SITE.'/'.$addition[0];
+			$additionVar = $$addition[1];
+
+			if (!is_array($additionVar)) {
+				$text = $additionVar;
+			}
+			else
+			{
+				$text = implode('',$additionVar);
+			}
+		}
+		return $text;
+	}
+
+	/**
 	 * Parses parameters of gjfileds (variablefileds) into a convinient arrays
 	 *
 	 * @author Gruz <arygroup@gmail.com>
@@ -114,26 +142,55 @@ class JPluginGJFields extends JPlugin {
 
 		$started = false;
 		$defaults = array();
-		foreach ($xml->xpath('//'.$xpath.'/'.$field) as $f) {
+
+		foreach ($xml->xpath('//'.$xpath.'/'.$field) as $f)
+		{
 			$field_name = (string)$f['name'];
-			if ($field_name == $group_name_start)  { $started = true; continue; }
-			if (!$started) { continue; }
-			if ($f['basetype'] == 'toggler') { continue; }
-			if ($f['basetype'] == 'blockquote') { continue; }
-			if ($f['basetype'] == 'note') { continue; }
+
+			if ($field_name == $group_name_start)
+			{
+				$started = true;
+				continue;
+			}
+
+			if (!$started)
+			{
+				continue;
+			}
+
+			if (in_array($f['basetype'], array('toggler', 'blockquote', 'note')))
+			{
+				continue;
+			}
+
+
 			$defaults[$field_name] = '';
+
 			$def = (string)$f['default'];
-			if (!empty($def)) {
-				$defaults[$field_name] = $def;
-			} else if ($def == 0)	{
+
+			if (!empty($f['defaultAddition']))
+			{
+				$def .= $this->getDefaultAddtion((string)$f['defaultAddition']);
+			}
+
+			if (!empty($def))
+			{
 				$defaults[$field_name] = $def;
 			}
-			if ($field_name == $group_name_end)  { break; }
+			elseif ($def == 0)
+			{
+				$defaults[$field_name] = $def;
+			}
+			if ($field_name == $group_name_end)
+			{
+				break;
+			}
 		}
 		// Get defauls values from XML }
 
 		// Get all parameters
 		$params = $this->params->toObject();
+
 		$pparams = array();
 		/*
 		if (empty($params->{$group_name})) {
@@ -147,44 +204,64 @@ class JPluginGJFields extends JPlugin {
 			$pparams[] = $override_parameters;
 		}
 		*/
-		if (empty($params->{$group_name})) {
+
+		if (empty($params->{$group_name}))
+		{
 			$params->{$group_name} = array();
 		}
+
 		$pparams_temp  = $params->{$group_name};
+
 		foreach ($pparams_temp as $fieldname=>$values) {
 			$group_number = 0;
 			$values = (array) $values;
-			foreach ($values as $n=>$value) {
-				if ($value == 'variablefield::'.$group_name) {
+
+			foreach ($values as $n=>$value)
+			{
+				if ($value == 'variablefield::'.$group_name)
+				{
 					$group_number++;
 				}
-				else if (is_array($value) && $value[0] == 'variablefield::'.$group_name){
-					if (!isset($pparams[$group_number][$fieldname])) {
+				elseif (is_array($value) && $value[0] == 'variablefield::'.$group_name)
+				{
+					if (!isset($pparams[$group_number][$fieldname]))
+					{
 						$pparams[$group_number][$fieldname] = array();
 					}
+
 					$group_number++;
 				}
-				else if (is_array($value) ) {
+				elseif (is_array($value) )
+				{
 					$pparams[$group_number][$fieldname][] = $value[0];
 				}
-				else if ( $fieldname == $group_name ) {
+				elseif ( $fieldname == $group_name )
+				{
 					$pparams[$group_number][$fieldname][] = $value;
 				}
-				else {
-					$pparams[$group_number][$fieldname] = $value;
+				else
+				{
+					if ($value !== '')
+					{
+						$pparams[$group_number][$fieldname] = $value;
+					}
 				}
 			}
 		}
+
 		// Update params with default values if there are no stored in the DB. Usefull when adding a new XML field and a user don't resave settings {
-		foreach ($pparams as $param_key=>$param) {
-			foreach ($defaults as $k=>$v) {
-				if (!isset($param[$k])) {
+		foreach ($pparams as $param_key=>$param)
+		{
+			foreach ($defaults as $k=>$v)
+			{
+				if (!isset($param[$k]))
+				{
 					$pparams[$param_key][$k] = $v;
 				}
 			}
 		}
-		// Update params with default values if there are no stored in the DB. Usefull when adding a new XML field and a user don't resave settings }
 
+		// Update params with default values if there are no stored in the DB. Usefull when adding a new XML field and a user don't resave settings }
 
 		$this->pparams = $pparams;
 	}

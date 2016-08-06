@@ -3,12 +3,12 @@
   <name>GJFields - a set of additional JForm feilds</name>
   <libraryname>gjfields</libraryname>
   <author>Gruz</author>
-  <creationDate>2016-07-02</creationDate>
+  <creationDate>2016-08-04</creationDate>
   <copyright>Copyright (C) 2004-2016 Gruz All rights reserved.</copyright>
   <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
   <authorEmail>arygroup@gmail.com</authorEmail>
   <authorUrl>http://gruz.org.ua/about-joomla/29-joomla-extensions/34-joomla-self-reproducing-jfrom-field.html</authorUrl>
-  <version>1.1.15</version>
+  <version>1.1.16</version>
   <description>Provides a set of additional JForm fileds. I.e. Variablefield is a self-reproducing JFrom field, which supports variable fields and groups of fields. Alas, no nested groups allowed. </description>
   <files>
     

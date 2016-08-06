@@ -450,8 +450,24 @@ else
 			// Template code path
 			$includePath[] = JPATH_THEMES . '/' . $template . '/code';
 
+			if (JFactory::getApplication()->isAdmin())
+			{
+				$db = JFactory::getDbo();
+				$query = $db->getQuery(true);
+				$query->select('template');
+				$query->from($db->quoteName('#__template_styles'));
+				$query->where($db->quoteName('client_id') . " = " . $db->quote('0'));
+				$query->where($db->quoteName('home') . " = " . $db->quote('1'));
+
+				$db->setQuery($query);
+
+				// Template FE name
+				$template = $db->loadResult();
+				$includePath[] = JPATH_ROOT . '/templates/' . $template . '/code';
+			}
+
 			// Base extensions path
-			$includePath[] = JPATH_BASE . '/code';
+			$includePath[] = JPATH_ROOT . '/code';
 
 			// Administrator extensions path
 			$includePath[] = JPATH_ADMINISTRATOR . '/code';
