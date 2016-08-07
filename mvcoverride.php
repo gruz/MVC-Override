@@ -484,14 +484,27 @@ else
 				}
 			}
 
+			// Change order to load libraries at first
+			$tmp_arr = array();
+			foreach ($files_to_override as $fileToOverride => $overriderFolder)
+			{
+				if (strpos($fileToOverride, '/libraries/') === 0)
+				{
+					$tmp_arr[$fileToOverride] = $overriderFolder;
+					unset($files_to_override[$fileToOverride]);
+				}
+			}
+			$files_to_override = array_merge($tmp_arr, $files_to_override);
+			unset ($tmp_arr);
+
 			if (empty($files_to_override))
 			{
 				return;
 			}
-
 			// Loading override files
 			foreach ($files_to_override as $fileToOverride => $overriderFolder)
 			{
+
 				if (JFile::exists(JPATH_ROOT . $fileToOverride))
 				{
 					$originalFilePath = JPATH_ROOT . $fileToOverride;
