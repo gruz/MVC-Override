@@ -439,7 +439,7 @@ else
 			$option = $this->getOption();
 
 			// Application name
-			$applicationName = JFactory::getApplication()->getName();
+			// $applicationName = JFactory::getApplication()->getName();
 
 			// Template name
 			$template = JFactory::getApplication()->getTemplate();
@@ -501,6 +501,33 @@ else
 			{
 				return;
 			}
+
+			// Check scope condition
+			$scope = '';
+			if (JFactory::getApplication()->isAdmin())
+			{
+				$scope = 'administrator';
+			}
+
+			// Do not override wrong scope for components
+			foreach ($files_to_override as $fileToOverride => $overriderFolder)
+			{
+				if (JFactory::getApplication()->isAdmin())
+				{
+					if (strpos($fileToOverride, '/com_') === 0)
+					{
+						unset($files_to_override[$fileToOverride]);
+					}
+				}
+				else
+				{
+					if (strpos($fileToOverride, '/administrator/com_') === 0)
+					{
+						unset($files_to_override[$fileToOverride]);
+					}
+				}
+			}
+
 			// Loading override files
 			foreach ($files_to_override as $fileToOverride => $overriderFolder)
 			{
