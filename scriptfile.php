@@ -14,6 +14,8 @@ if (!class_exists('ScriptAry')) { include dirname(__FILE__).'/scriptary.php';}
 
 
 
+
+
 class plgsystemmvcoverrideInstallerScript extends ScriptAry {
 	/**
 	 * method to install the component

@@ -486,6 +486,18 @@ else
 
 			// Change order to load libraries at first
 			$tmp_arr = array();
+
+			if (isset($files_to_override['/libraries/joomla/form/fields/text.php']) && isset($files_to_override['/libraries/joomla/form/field.php']))
+			{
+				$fflls = array('/libraries/joomla/form/field.php', '/libraries/joomla/form/fields/text.php');
+
+				foreach ($fflls as $ffll)
+				{
+					$tmp_arr[$ffll] = $files_to_override[$ffll];
+					unset($files_to_override[$ffll]);
+				}
+			}
+
 			foreach ($files_to_override as $fileToOverride => $overriderFolder)
 			{
 				if (strpos($fileToOverride, '/libraries/') === 0)
@@ -494,6 +506,7 @@ else
 					unset($files_to_override[$fileToOverride]);
 				}
 			}
+
 			$files_to_override = array_merge($tmp_arr, $files_to_override);
 			unset ($tmp_arr);
 
@@ -504,6 +517,7 @@ else
 
 			// Check scope condition
 			$scope = '';
+
 			if (JFactory::getApplication()->isAdmin())
 			{
 				$scope = 'administrator';
@@ -531,7 +545,6 @@ else
 			// Loading override files
 			foreach ($files_to_override as $fileToOverride => $overriderFolder)
 			{
-
 				if (JFile::exists(JPATH_ROOT . $fileToOverride))
 				{
 					$originalFilePath = JPATH_ROOT . $fileToOverride;

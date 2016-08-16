@@ -8,6 +8,7 @@
  */
 
 defined('JPATH_PLATFORM') or die;
+
 JFormHelper::loadFieldClass('user');
 /**
  * Field to select a user ID from a modal list.
@@ -65,7 +66,7 @@ class JFormFieldUsers extends JFormField
 		}
 		/*##mygruz20160509151935 {
 		It was:
-      return $this->getRenderer($this->layout)->render($this->getLayoutData());
+		return $this->getRenderer($this->layout)->render($this->getLayoutData());
 		It became:*/
 
 		//~ $document = JFactory::getDocument();
@@ -87,14 +88,14 @@ class JFormFieldUsers extends JFormField
 		} else {
 			$this->element['name'] = $this->element['name'].'[]';
 		}
-      $renderer = $this->getRenderer($layout);
-      $renderer->getDefaultIncludePaths();
-      $renderer->setIncludePaths(array_merge($renderer->getIncludePaths(),$includePaths)) ;
-      $data = array_merge($this->getLayoutData(),array('simple'=>( isset($this->element['simple']) && (string)$this->element['simple'] == 'true'  )? true: false));
-      //$renderer->setIncludePaths((array)JPATH_LIBRARIES) ;
+		$renderer = $this->getRenderer($layout);
+		$renderer->getDefaultIncludePaths();
+		$renderer->setIncludePaths(array_merge($renderer->getIncludePaths(),$includePaths)) ;
+		$data = array_merge($this->getLayoutData(),array('simple'=>( isset($this->element['simple']) && (string)$this->element['simple'] == 'true'  )? true: false));
+		//$renderer->setIncludePaths((array)JPATH_LIBRARIES) ;
 //~ var_dump($renderer);
 //~ var_dump($this->getLayoutData());
-      return $renderer->render($data,true	);
+		return $renderer->render($data,true	);
 		/*##mygruz20160509151935 } */
 	}
 

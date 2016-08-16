@@ -49,9 +49,13 @@ class JPluginGJFields extends JPlugin {
 	 * @param	type	$name	Description
 	 * @return	type			Description
 	 */
-	protected function _preparePluginHasBeenSavedOrAppliedFlag () {
+	protected function _preparePluginHasBeenSavedOrAppliedFlag ()
+	{
 		$jinput = JFactory::getApplication()->input;
-		if ($jinput->get('option',null) == 'com_dump') { return; }
+		if ($jinput->get('option',null) == 'com_dump')
+		{
+			return;
+		}
 
 		//CHECK IF THE PLUGIN WAS JUST SAVED AND STORE A FLAG TO SESSION
 		$jinput = JFactory::getApplication()->input;
@@ -60,30 +64,42 @@ class JPluginGJFields extends JPlugin {
 		$session = JFactory::getSession();
 		$option = $jinput->get('option',null);
 		$task = $jinput->get('task',null);
-		if ($option == 'com_plugins' && in_array ($task,array('plugin.save','plugin.apply'))) {
+
+		if ($option == 'com_plugins' && in_array ($task,array('plugin.save','plugin.apply')))
+		{
 			// If the plugin which is saved is our current plugin and it's enabled
 			$session = JFactory::getSession();
 			$jform = $jinput->post->get('jform',null,'array');
-			if(isset($jform['element']) && $jform['element'] == $this->plg_name && isset($jform['folder']) && $jform['folder'] == $this->plg_type) {
-				if ($jform['enabled'] == '0') {
-					//unset ($_SESSION[$this->plg_full_name]);
+
+			if(isset($jform['element']) && $jform['element'] == $this->plg_name && isset($jform['folder']) && $jform['folder'] == $this->plg_type)
+			{
+				if ($jform['enabled'] == '0')
+				{
 					$session->clear($this->plg_full_name);
 				}
-				else {
+				else
+				{
 					$data = new stdClass;
 					$data->runPlugin = true;
 					$session->set($this->plg_full_name, $data);
 				}
 			}
 		}
-		else {
+		else
+		{
 			$sessionInfo = $session->get($this->plg_full_name,array());
 			$session->clear($this->plg_full_name);
-			if (empty($sessionInfo) || empty($sessionInfo->runPlugin)) {	return; } // If we do not have to run plugin - joomla is not saving the plugin
-			else {$this->pluginHasBeenSavedOrApplied = $sessionInfo->runPlugin; }
+
+			 // If we do not have to run plugin - joomla is not saving the plugin
+			if (empty($sessionInfo) || empty($sessionInfo->runPlugin))
+			{
+				return;
+			}
+			else {
+				$this->pluginHasBeenSavedOrApplied = $sessionInfo->runPlugin;
+			}
 		}
 	}
-
 
 	/**
 	 * Gets defaultAttion default value
