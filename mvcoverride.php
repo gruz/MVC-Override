@@ -472,6 +472,8 @@ else
 			// Administrator extensions path
 			$includePath[] = JPATH_ADMINISTRATOR . '/code';
 
+			$includePath = $this->_getIncludePaths();
+
 			$files_to_override = array();
 
 			foreach ($includePath as $k => $codefolder)
@@ -750,6 +752,120 @@ else
 			}
 
 			return $option;
+		}
+
+		/**
+		 * Override JForm XML
+		 *
+		 * @param   JForm  $form  The form to be altered.
+		 * @param   mixed  $data  The associated data for the form.
+		 *
+		 * @return  boolean
+		 *
+		 * @since	2.5
+		 */
+		public function onContentPrepareForm($form, $data)
+		{
+			// Check we have a form.
+			if (!($form instanceof JForm))
+			{
+				$this->_subject->setError('JERROR_NOT_A_FORM');
+
+				return false;
+			}
+
+			$app = JFactory::getApplication();
+			$jinput = $app->input;
+
+			$includePaths = $this->_getIncludePaths();
+
+			list($component, $formName) = explode('.', $form->getName());
+
+			foreach ($includePaths as $k => $includePath)
+			{
+				$from_path = $includePath . '/' . $component . '/models/forms/' . $formName . '.xml';
+
+				if (!JFile::exists($from_path))
+				{
+					continue;
+				}
+
+				/*
+				There is no other way to override a form except removing all core form fields
+				and loading override form next.
+
+				It is not possible on some reason to do something like this
+
+				$form = new JForm($from_path);
+				$form->loadFile($from_path, false);
+
+				It would still update, but not replace the from.
+				*/
+
+				// Remove all core fields
+				foreach ($form->getFieldsets() as $fieldset)
+				{
+					$fields = $form->getFieldset($fieldset->name);
+
+					// Validate the fields.
+					foreach ($fields as $field)
+					{
+						$fieldName = $field->getAttribute('name');
+						$form->removeField($fieldName);
+					}
+				}
+
+				// Load overrider form
+				$form->loadFile($from_path, false);
+			}
+		}
+
+		/**
+		 * Prepares all possible paths where overrides can be placed
+		 *
+		 * @return   array  Array of path to be included
+		 */
+		public function _getIncludePaths()
+		{
+			if (!empty($this->includePaths))
+			{
+				return $this->includePaths;
+			}
+
+			// Template name
+			$template = JFactory::getApplication()->getTemplate();
+
+			// Code paths
+			$includePath = array();
+
+			// Template code path
+			$includePath[] = JPATH_THEMES . '/' . $template . '/code';
+
+			if (JFactory::getApplication()->isAdmin())
+			{
+				$db = JFactory::getDbo();
+				$query = $db->getQuery(true);
+				$query->select('template');
+				$query->from($db->quoteName('#__template_styles'));
+				$query->where($db->quoteName('client_id') . " = " . $db->quote('0'));
+				$query->where($db->quoteName('home') . " = " . $db->quote('1'));
+
+				$db->setQuery($query);
+
+				// Template FE name
+				$template = $db->loadResult();
+				$includePath[] = JPATH_ROOT . '/templates/' . $template . '/code';
+			}
+
+			// Base extensions path
+			$includePath[] = JPATH_ROOT . '/code';
+
+			// Administrator extensions path
+			$includePath[] = JPATH_ADMINISTRATOR . '/code';
+
+			$this->includePaths = $includePath;
+
+			return $this->includePaths;
 		}
 	}
 }
