@@ -10,15 +10,19 @@ defined('_JEXEC') or die('Restricted access');
 /**
  * Script file
  */
-class ScriptAry {
-	function __construct() {
-		}
+class ScriptAry
+{
+	function __construct()
+	{
+	}
+
 	/**
 	 * method to install the component
 	 *
 	 * @return void
 	 */
-	function install($parent) {
+	function install($parent)
+	{
 		// $parent is the class calling this method
 		//$parent->getParent()->setRedirectURL('index.php?option=com_helloworld');
 	}
@@ -28,7 +32,8 @@ class ScriptAry {
 	 *
 	 * @return void
 	 */
-	function uninstall($parent) {
+	function uninstall($parent)
+	{
 		// $parent is the class calling this method
 		//echo '<p>' . JText::_('You may wish to uninstall GJFields library used together with this extension. Other extensions may also use GJFields. If you uninstall GJFields by mistake, you can always reinstall it.') . '</p>';
 	}
@@ -38,13 +43,12 @@ class ScriptAry {
 	 *
 	 * @return void
 	 */
-	function update($parent) {
+	function update($parent)
+	{
 		// $parent is the class calling this method
 		//echo '<p>' . JText::_('COM_HELLOWORLD_UPDATE_TEXT') . '</p>';
 
 	}
-
-
 
 	/**
 	 * A small helper class to get extension name from $this class name
@@ -77,8 +81,10 @@ class ScriptAry {
 		$this->ext_type = (string)$manifest['type'];
 		$className = get_called_class();
 		$ext = substr($className,0,3);
+
 		switch ($ext) {
 			case 'plg':
+				$this->ext_name = (string) $manifest->xpath('//filename[@plugin]')[0]['plugin'];
 				$this->ext_full_name = $ext.'_'.$this->ext_group.'_'.$this->ext_name;
 				break;
 			case 'mod':
@@ -120,10 +126,14 @@ class ScriptAry {
 			echo '<ul><li>'.implode('</li><li>',$this->messages).'</li></ul>';
 		}
 	}
-	private function _publishPlugin($plg_name,$plg_type, $plg_full_name = null) {
+
+	private function _publishPlugin($plg_name,$plg_type, $plg_full_name = null)
+	{
 		$plugin = JPluginHelper::getPlugin($plg_type, $plg_name);
+
 		$success = true;
-		if (empty($plugin)) {
+		if (empty($plugin))
+		{
 
 			//get the smallest order value
 			$db = jfactory::getdbo();
@@ -140,8 +150,10 @@ class ScriptAry {
 				$db->quotename('element').'='.$db->quote($plg_name),
 			);
 			$query->update($db->quotename('#__extensions'))->set($fields)->where($conditions);
-			$db->setquery($query);
-			$result = $db->execute();
+
+			$db->setQuery($query);
+			$db->execute();
+
 			$getaffectedrows = $db->getAffectedRows();
 			$success = $getaffectedrows;
 		}

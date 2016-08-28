@@ -10,53 +10,7 @@ if (!class_exists('ScriptAry')) { include dirname(__FILE__).'/scriptary.php';}
 
 
 
-
-
-
-
-
-
 class plgsystemmvcoverrideInstallerScript extends ScriptAry {
-	/**
-	 * method to install the component
-	 *
-	 * @return void
-	 */
-	function install($parent) {
-		// $parent is the class calling this method
-		//$parent->getParent()->setRedirectURL('index.php?option=com_helloworld');
-	}
-
-	/**
-	 * method to uninstall the component
-	 *
-	 * @return void
-	 */
-	function uninstall($parent) {
-		// $parent is the class calling this method
-		//echo '<p>' . JText::_('COM_HELLOWORLD_UNINSTALL_TEXT') . '</p>';
-	}
-
-	/**
-	 * method to update the component
-	 *
-	 * @return void
-	 */
-	function update($parent) {
-		// $parent is the class calling this method
-		//echo '<p>' . JText::_('COM_HELLOWORLD_UPDATE_TEXT') . '</p>';
-	}
-
-	/**
-	 * method to run before an install/update/uninstall method
-	 *
-	 * @return void
-	 */
-	function preflight($type, $parent) {
-		// $parent is the class calling this method
-		// $type is the type of change (install, update or discover_install)
-		//echo '<p>' . JText::_('COM_HELLOWORLD_PREFLIGHT_' . $type . '_TEXT') . '</p>';
-	}
 
 	/**
 	 * method to run after an install/update/uninstall method
@@ -116,34 +70,8 @@ class plgsystemmvcoverrideInstallerScript extends ScriptAry {
 			}
 		}
 
-		if ($type != 'uninstall') {
-			$this->installExtensions($parent);
-		}
-		// $parent is the class calling this method
-		// $type is the type of change (install, update or discover_install)
-		//echo '<p>' . JText::_('COM_HELLOWORLD_POSTFLIGHT_' . $type . '_TEXT') . '</p>';
-		if (!empty($this->messages)) {
-			echo '<ul><li>'.implode('</li><li>',$this->messages).'</li></ul>';
-		}
+		parent::postflight($type, $parent);
 	}
-	private function installExtensions ($parent) {
-		jimport('joomla.filesystem.folder');
-		jimport('joomla.installer.installer');
-
-		$extpath = __DIR__.'/extensions';
-		$folders = JFolder::folders ($extpath);
-		foreach ($folders as $folder) {
-			$installer = new JInstaller();
-			if ($installer->install($extpath.'/'.$folder)) {
-				$manifest = $installer->getManifest();
-				$this->messages[] = JText::sprintf('COM_INSTALLER_INSTALL_SUCCESS','<b style="color:#0055BB;">['.$manifest->name.']<span style="color:green;">').'</span></b>';
-			}
-			else {
-				$this->messages[] = '<span style="color:red;">'.$folder . ' '.JText::_('JERROR_AN_ERROR_HAS_OCCURRED') . '</span>';
-			}
-		}
-	}
-
 }
 ?>
 
