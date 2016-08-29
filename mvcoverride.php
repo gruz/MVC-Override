@@ -86,7 +86,7 @@ else
 
 			$app = JFactory::getApplication();
 			$router = $app->getRouter();
-			$uri     = JUri::getInstance();
+			$uri     = clone JUri::getInstance();
 
 			$parsed = $router->parse($uri);
 
@@ -735,7 +735,7 @@ else
 			{
 				$app = JFactory::getApplication();
 				$router = $app->getRouter();
-				$uri     = JUri::getInstance();
+				$uri     = clone JUri::getInstance();
 
 				$parsed = $router->parse($uri);
 				$option = $parsed['option'];
