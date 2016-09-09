@@ -806,7 +806,10 @@ else
 			}
 			*/
 
-			$form->reset(true);
+			if (!empty($form_paths))
+			{
+				$form->reset(true);
+			}
 
 			foreach ($form_paths as $form_path)
 			{
