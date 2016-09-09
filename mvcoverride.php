@@ -765,53 +765,53 @@ else
 					break;
 			}
 
-			$from_paths = array();
+			$form_paths = array();
 
 			foreach ($includePaths as $k => $includePath)
 			{
 				foreach ($fileNamesToInclude as $l => $fileNameToInclude)
 				{
-					$from_path = $includePath . '/' . $component . '/models/forms/' . $fileNameToInclude . '.xml';
+					$form_path = $includePath . '/' . $component . '/models/forms/' . $fileNameToInclude . '.xml';
 
-					if (JFile::exists($from_path))
+					if (JFile::exists($form_path))
 					{
-						$from_paths[] = $from_path;
+						$form_paths[] = $form_path;
 					}
 				}
 			}
 
-			if (!empty($from_paths))
+			/* Old stupid approcah. Shame on me.
+			if (!empty($form_paths) && false)
 			{
-				/*
 				There is no other way to override a form except removing all core form fields
 				and loading override form next.
 
 				It is not possible on some reason to do something like this
 
-				$form = new JForm($from_path);
-				$form->loadFile($from_path, false);
+				$form = new JForm($form_path);
+				$form->loadFile($form_path, false);
 
 				It would still update, but not replace the from.
-				*/
 
-				// Remove all core fields
 				foreach ($form->getFieldsets() as $fieldset)
 				{
 					$fields = $form->getFieldset($fieldset->name);
 
-					// Validate the fields.
 					foreach ($fields as $field)
 					{
 						$fieldName = $field->getAttribute('name');
-						$form->removeField($fieldName);
+						$res = $form->removeField($fieldName,  $field->group);
 					}
 				}
 			}
+			*/
 
-			foreach ($from_paths as $from_path)
+			$form->reset(true);
+
+			foreach ($form_paths as $form_path)
 			{
 				// Load override form
-				$form->loadFile($from_path, false);
+				$form->loadFile($form_path);
 			}
 		}
 
