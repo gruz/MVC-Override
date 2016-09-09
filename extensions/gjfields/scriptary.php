@@ -1,143 +1,206 @@
 <?php
-/*
- * @author Gruz <arygroup@gmail.com>
- * @copyright	Copyleft - All rights reversed
- * @license GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
-
- * */
-// No direct access to this file
-defined('_JEXEC') or die('Restricted access');
 /**
- * Script file
+ * ScriptAry helper base class. I used by all gruz.org.ua extensions
+ *
+ * @package    ScriptAry
+ *
+ * @author     Gruz <arygroup@gmail.com>
+ * @copyright  Copyleft (є) 2016 - All rights reversed
+ * @license    GNU/GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
  */
-class ScriptAry {
-	function __construct() {
-		}
+
+// No direct access
+defined('_JEXEC') or die;
+
+/**
+ * Class to be extended by
+ *
+ * @author  Gruz <arygroup@gmail.com>
+ * @since   0.0.1
+ */
+class ScriptAry
+{
 	/**
-	 * method to install the component
+	 * On install operations
 	 *
-	 * @return void
+	 * @param   object  $parent  Is the class calling this method
+	 *
+	 * @return   void
 	 */
-	function install($parent) {
+	public function install($parent)
+	{
 		// $parent is the class calling this method
-		//$parent->getParent()->setRedirectURL('index.php?option=com_helloworld');
+		// $parent->getParent()->setRedirectURL('index.php?option=com_helloworld');
 	}
 
 	/**
-	 * method to uninstall the component
+	 * On uninstall operations
 	 *
-	 * @return void
+	 * @param   object  $parent  Is the class calling this method
+	 *
+	 * @return   void
 	 */
-	function uninstall($parent) {
-		// $parent is the class calling this method
-		//echo '<p>' . JText::_('You may wish to uninstall GJFields library used together with this extension. Other extensions may also use GJFields. If you uninstall GJFields by mistake, you can always reinstall it.') . '</p>';
+	public function uninstall($parent)
+	{
+		// Nothing yet
 	}
 
 	/**
-	 * method to update the component
+	 * On update operations
 	 *
-	 * @return void
+	 * @param   object  $parent  Is the class calling this method
+	 *
+	 * @return   void
 	 */
-	function update($parent) {
+	public function update($parent)
+	{
 		// $parent is the class calling this method
-		//echo '<p>' . JText::_('COM_HELLOWORLD_UPDATE_TEXT') . '</p>';
-
+		// E.g. echo '<p>' . JText::_('COM_HELLOWORLD_UPDATE_TEXT') . '</p>';
 	}
 
-
-
 	/**
-	 * A small helper class to get extension name from $this class name
+	 * Parses scriptfile.php class name to find the name of the extension beign installed
 	 *
-	 * Full description (multiline)
-	 *
-	 * @author Gruz <arygroup@gmail.com>
-	 * @param	type	$name	Description
-	 * @return	type			Description
+	 * @return   mixed  Extension name or false
 	 */
-	static function _getExtensionName() {
+	static public function _getExtensionName()
+	{
 		$className = get_called_class();
-		preg_match('~(?:plg|mod_)(.*)InstallerScript~Ui',$className,$matches);
-		if (isset($matches[1])) {
+		preg_match('~(?:plg|mod_|Plg|Mod_)(.*)InstallerScript~Ui', $className, $matches);
+
+		if (isset($matches[1]))
+		{
 			return strtolower($matches[1]);
 		}
+
 		return false;
 	}
 
 	/**
-	 * method to run before an install/update/uninstall method
+	 * Prepares some variables to be used later in the class, loads languages
 	 *
-	 * @return void
+	 * @param   string  $type    Is the type of change (install, update or discover_install)
+	 * @param   object  $parent  Is the class calling this method
+	 *
+	 * @return   void
 	 */
-	function preflight($type, $parent) {
+	public function preflight($type, $parent)
+	{
 		$manifest = $parent->getParent()->getManifest();
 
 		$this->ext_name = $this->_getExtensionName();
-		$this->ext_group = (string)$manifest['group'];
-		$this->ext_type = (string)$manifest['type'];
+		$this->ext_group = (string) $manifest['group'];
+		$this->ext_type = (string) $manifest['type'];
 		$className = get_called_class();
-		$ext = substr($className,0,3);
-		switch ($ext) {
+		$ext = strtolower(substr($className, 0, 3));
+		switch ($ext)
+		{
 			case 'plg':
-				$this->ext_full_name = $ext.'_'.$this->ext_group.'_'.$this->ext_name;
+				$this->ext_name = substr($this->ext_name, strlen($this->ext_group));
+				$this->ext_full_name = $ext . '_' . $this->ext_group . '_' . $this->ext_name;
 				break;
 			case 'mod':
 			case 'com':
 			case 'lib':
 			default :
-				$this->ext_full_name = $ext.'_'.$this->ext_name;
+				$this->ext_full_name = $ext . '_' . $this->ext_name;
 				break;
 		}
 
-		$this->langShortCode = null;//is used for building joomfish links
+		$this->langShortCode = null;
 		$this->default_lang = JComponentHelper::getParams('com_languages')->get('admin');
 		$language = JFactory::getLanguage();
 		$language->load($this->ext_full_name, dirname(__FILE__), 'en-GB', true);
 		$language->load($this->ext_full_name, dirname(__FILE__), $this->default_lang, true);
-
 	}
 
 	/**
-	 * method to run after an install/update/uninstall method
+	 * Install extensions (placed in /extension folders, published the plugin)
 	 *
-	 * @return void
+	 * @param   string  $type           Is the type of change (install, update or discover_install)
+	 * @param   object  $parent         Is the class calling this method
+	 * @param   bool    $publishPlugin  If to publish the being installed plugin
+	 *
+	 * @return   void
 	 */
-	function postflight( $type, $parent ) {
+	public function postflight($type, $parent, $publishPlugin = true)
+	{
 		$manifest = $parent->getParent()->getManifest();
 
-		if ($type != 'uninstall') {
+		if ($type != 'uninstall')
+		{
 			$this->_installExtensions($parent);
 		}
 
-		if ($type == 'install' && $this->ext_type == 'plugin') {
-			$this->_publishPlugin($this->ext_name,$this->ext_group, $this->ext_full_name);
+		if ($publishPlugin && $type == 'install' && $this->ext_type == 'plugin')
+		{
+			$this->_publishPlugin($this->ext_name, $this->ext_group, $this->ext_full_name);
 		}
 
-		// $parent is the class calling this method
-		// $type is the type of change (install, update or discover_install)
-		//echo '<p>' . JText::_('COM_HELLOWORLD_POSTFLIGHT_' . $type . '_TEXT') . '</p>';
-		if (!empty($this->messages)) {
-			echo '<ul><li>'.implode('</li><li>',$this->messages).'</li></ul>';
+		// Remove min js and css
+		if ($this->ext_type == 'plugin')
+		{
+
+			foreach (array('js', 'css') as $ftype)
+			{
+				$path = JPATH_ROOT .'/plugins/' . $this->ext_group . '/' . $this->ext_name . '/' ;
+				$pattern = '.*min\.'. $ftype . '';
+				$files = JFolder::files($path, $pattern, true, true);
+				foreach ($files as $fll)
+				{
+					JFile::delete($files);
+				}
+			}
+
+			$extensionTable = JTable::getInstance('extension');
+			// Find plugin id, in my case it was plg_ajax_ajaxhelpary
+			$pluginId = $extensionTable->find( array('element' => $this->ext_name, 'type' => 'plugin') );
+			$extensionTable->load($pluginId);
+			$this->messages[] = JText::_('JOPTIONS').': <a class="menu-'.$this->ext_name.' " href="index.php?option=com_plugins&task=plugin.edit&extension_id='.$pluginId.'">'.JText::_($this->ext_full_name).'</a>';
 		}
+
+
+
+		if (!empty($this->messages))
+		{
+			echo '<ul><li>' . implode('</li><li>', $this->messages) . '</li></ul>';
+		}
+
+		// E.g.: echo '<p>' . JText::_('COM_HELLOWORLD_POSTFLIGHT_' . $type . '_TEXT') . '</p>';
 	}
-	private function _publishPlugin($plg_name,$plg_type, $plg_full_name = null) {
+
+	/**
+	 * Publishes a plugin
+	 *
+	 * @param   string  $plg_name       Plugin name, like notificationary
+	 * @param   string  $plg_type       Plugin group, like system
+	 * @param   string  $plg_full_name  Plugin full name, like olg_system_notificationary
+	 *
+	 * @return   void
+	 */
+	private function _publishPlugin($plg_name,$plg_type, $plg_full_name = null)
+	{
 		$plugin = JPluginHelper::getPlugin($plg_type, $plg_name);
 		$success = true;
-		if (empty($plugin)) {
 
-			//get the smallest order value
+		if (empty($plugin))
+		{
+			// Get the smallest order value
 			$db = jfactory::getdbo();
-			// publish plugin
+
+			// Publish plugin
 			$query = $db->getquery(true);
-			// fields to update.
+
+			// Fields to update.
 			$fields = array(
-				$db->quotename('enabled').'='.$db->quote('1')
+				$db->quotename('enabled') . '=' . $db->quote('1')
 			);
-			// conditions for which records should be updated.
+
+			// Conditions for which records should be updated.
 			$conditions = array(
-				$db->quotename('type').'='.$db->quote('plugin'),
-				$db->quotename('folder').'='.$db->quote($plg_type),
-				$db->quotename('element').'='.$db->quote($plg_name),
+				$db->quotename('type') . '=' . $db->quote('plugin'),
+				$db->quotename('folder') . '=' . $db->quote($plg_type),
+				$db->quotename('element') . '=' . $db->quote($plg_name),
 			);
 			$query->update($db->quotename('#__extensions'))->set($fields)->where($conditions);
 			$db->setquery($query);
@@ -146,56 +209,90 @@ class ScriptAry {
 			$success = $getaffectedrows;
 		}
 
+		if (empty($plg_full_name))
+		{
+			$plg_full_name = $plg_name;
+		}
 
-		if (empty($plg_full_name)) { $plg_full_name = $plg_name; }
-		$msg = jtext::_('jglobal_fieldset_publishing').': <b style="color:blue;"> '.JText::_($plg_full_name).'</b> ... ';
-		if($success) {
-			$msg .= '<b style="color:green">'.jtext::_('jpublished').'</b>';
+		$msg = jtext::_('jglobal_fieldset_publishing') . ': <b style="color:blue;"> ' . JText::_($plg_full_name) . '</b> ... ';
+
+		if ($success)
+		{
+			$msg .= '<b style="color:green">' . jtext::_('jpublished') . '</b>';
 		}
-		else {
-			$msg .= '<b style="color:red">'.jtext::_('error').'</b>';
+		else
+		{
+			$msg .= '<b style="color:red">' . jtext::_('error') . '</b>';
 		}
+
 		$this->messages[] = $msg;
 	}
-	private function _installExtensions ($parent) {
+
+	/**
+	 * Installs all extensions
+	 *
+	 * Full description (multiline)
+	 *
+	 * @param   object  $parent  Is the class calling this method
+	 *
+	 * @return   void
+	 */
+	private function _installExtensions ($parent)
+	{
 		jimport('joomla.filesystem.folder');
 		jimport('joomla.installer.installer');
 
-		JLoader::register('LanguagesModelInstalled', JPATH_ADMINISTRATOR.'/components/com_languages/models/installed.php');
-		$lang = new LanguagesModelInstalled();
-		$current_languages = $lang ->getData();
+		JLoader::register('LanguagesModelInstalled', JPATH_ADMINISTRATOR . '/components/com_languages/models/installed.php');
+		$lang = new LanguagesModelInstalled;
+		$current_languages = $lang->getData();
 		$locales = array();
-		foreach($current_languages as $lang) {
-			$locales[]=$lang->language;
+
+		foreach ($current_languages as $lang)
+		{
+			$locales[] = $lang->language;
 		}
-		$extpath = dirname(__FILE__).'/extensions';
-		if (!is_dir($extpath)) {
+
+		$extpath = dirname(__FILE__) . '/extensions';
+
+		if (!is_dir($extpath))
+		{
 			return;
 		}
-		$folders = JFolder::folders ($extpath);
-		foreach ($folders as $folder) {
-			$folder_temp = explode('_',$folder,2);
-			if (isset ($folder_temp[0])) {
+
+		$folders = JFolder::folders($extpath);
+
+		foreach ($folders as $folder)
+		{
+			$folder_temp = explode('_', $folder, 2);
+
+			if (isset ($folder_temp[0]))
+			{
 				$check_if_language = $folder_temp[0];
-				if (preg_match('~[a-z]{2}-[A-Z]{2}~',$check_if_language)) {
-					if (!in_array($folder_temp[0],$locales)) {
+
+				if (preg_match('~[a-z]{2}-[A-Z]{2}~', $check_if_language))
+				{
+					if (!in_array($folder_temp[0], $locales))
+					{
 						continue;
 					}
 				}
-
 			}
 
-			$installer = new JInstaller();
-			if ($installer->install($extpath.'/'.$folder)) {
+			$installer = new JInstaller;
+
+			if ($installer->install($extpath . '/' . $folder))
+			{
 				$manifest = $installer->getManifest();
-				$this->messages[] = JText::sprintf('COM_INSTALLER_INSTALL_SUCCESS','<b style="color:#0055BB;">['.$manifest->name.']<span style="color:green;">').'</span></b>';
+				$this->messages[] = JText::sprintf(
+						'COM_INSTALLER_INSTALL_SUCCESS',
+						'<b style="color:#0055BB;">[' . $manifest->name . ']<span style="color:green;">'
+					)
+					. '</span></b>';
 			}
-			else {
-				$this->messages[] = '<span style="color:red;">'.$folder . ' '.JText::_('JERROR_AN_ERROR_HAS_OCCURRED') . '</span>';
+			else
+			{
+				$this->messages[] = '<span style="color:red;">' . $folder . ' ' . JText::_('JERROR_AN_ERROR_HAS_OCCURRED') . '</span>';
 			}
 		}
 	}
-
 }
-?>
-

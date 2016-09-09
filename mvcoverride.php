@@ -444,34 +444,6 @@ else
 			// Template name
 			$template = JFactory::getApplication()->getTemplate();
 
-			// Code paths
-			$includePath = array();
-
-			// Template code path
-			$includePath[] = JPATH_THEMES . '/' . $template . '/code';
-
-			if (JFactory::getApplication()->isAdmin())
-			{
-				$db = JFactory::getDbo();
-				$query = $db->getQuery(true);
-				$query->select('template');
-				$query->from($db->quoteName('#__template_styles'));
-				$query->where($db->quoteName('client_id') . " = " . $db->quote('0'));
-				$query->where($db->quoteName('home') . " = " . $db->quote('1'));
-
-				$db->setQuery($query);
-
-				// Template FE name
-				$template = $db->loadResult();
-				$includePath[] = JPATH_ROOT . '/templates/' . $template . '/code';
-			}
-
-			// Base extensions path
-			$includePath[] = JPATH_ROOT . '/code';
-
-			// Administrator extensions path
-			$includePath[] = JPATH_ADMINISTRATOR . '/code';
-
 			$includePath = $this->_getIncludePaths();
 
 			$files_to_override = array();
@@ -516,7 +488,6 @@ else
 			{
 				return;
 			}
-
 			// Check scope condition
 			$scope = '';
 
@@ -781,15 +752,36 @@ else
 
 			list($component, $formName) = explode('.', $form->getName());
 
+			$fileNamesToInclude = array($formName);
+
+			switch ($form->getName())
+			{
+				case 'com_users.profile':
+					$fileNamesToInclude[] = 'frontend';
+					$fileNamesToInclude[] = 'frontend_admin';
+					break;
+				default :
+
+					break;
+			}
+
+			$from_paths = array();
+
 			foreach ($includePaths as $k => $includePath)
 			{
-				$from_path = $includePath . '/' . $component . '/models/forms/' . $formName . '.xml';
-
-				if (!JFile::exists($from_path))
+				foreach ($fileNamesToInclude as $l => $fileNameToInclude)
 				{
-					continue;
-				}
+					$from_path = $includePath . '/' . $component . '/models/forms/' . $fileNameToInclude . '.xml';
 
+					if (JFile::exists($from_path))
+					{
+						$from_paths[] = $from_path;
+					}
+				}
+			}
+
+			if (!empty($from_paths))
+			{
 				/*
 				There is no other way to override a form except removing all core form fields
 				and loading override form next.
@@ -814,8 +806,11 @@ else
 						$form->removeField($fieldName);
 					}
 				}
+			}
 
-				// Load overrider form
+			foreach ($from_paths as $from_path)
+			{
+				// Load override form
 				$form->loadFile($from_path, false);
 			}
 		}
