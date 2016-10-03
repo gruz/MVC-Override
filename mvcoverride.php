@@ -372,6 +372,8 @@ else
 						$buffer = preg_replace('/private *function/i', 'protected function', $buffer);
 					}
 
+					$buffer = $this->_trimEndClodingTag($buffer);
+
 					// Finally we can load the base class
 					eval('?>' . $buffer . PHP_EOL . '?>');
 				}
@@ -607,6 +609,7 @@ else
 					}
 
 					// Finally we can load the base class
+					$bufferContent = $this->_trimEndClodingTag($bufferContent);
 					eval('?>' . $bufferContent . PHP_EOL . '?>');
 
 					require $overriderFilePath;
@@ -864,6 +867,29 @@ else
 			$this->includePaths = $includePath;
 
 			return $this->includePaths;
+		}
+
+		/**
+		 * Trims the last ?> closing tag
+		 *
+		 * @param   string  $bufferContent  PHP code
+		 *
+		 * @return   string  Ready for eval code
+		 */
+		function _trimEndClodingTag($bufferContent)
+		{
+			$bufferContent = explode('?>', $bufferContent);
+
+			$last = end ($bufferContent);
+
+			if (JString::trim($last) == '')
+			{
+				array_pop($bufferContent);
+			}
+
+			$bufferContent = implode('?>', $bufferContent);
+
+			return $bufferContent;
 		}
 	}
 }

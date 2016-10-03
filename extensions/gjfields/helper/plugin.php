@@ -524,10 +524,12 @@ class JPluginGJFields extends JPlugin
 		$file_path = JPATH_ROOT . '/' . $url;
 
 		// Just in case the web-site is not in the root of the domain name, like localhost/noble/index.php
-		if (!empty(JUri::base(true)))
+		$uribase = JUri::base(true);
+
+		if (!empty($uribase))
 		{
 			$file_path = JPath::clean(str_replace(JPATH_ROOT . '/' . JUri::base(true), JPATH_ROOT . '/', $file_path));
-			$url = JPath::clean(JUri::base(true) . '/' . $url);
+			$url = JPath::clean(JUri::root(true) . '/' . $url);
 		}
 
 		// If the file is a local one, then add it's md5_file hash to the link
@@ -595,7 +597,6 @@ class JPluginGJFields extends JPlugin
 	{
 		// At least here in the plugin it's a must to send proper headers
 		JFactory::getApplication()->setHeader('Content-Type', 'application/json', true)->sendHeaders();
-
 		echo new JResponseJson($data, $message, $task_failed);
 
 		// Closing app is a must here to return JSON immideately
