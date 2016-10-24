@@ -291,6 +291,8 @@ else
 			$uniqid = strtoupper($option) . '_';
 			$this->_defineConstants($option, $uniqid);
 
+			$this->_replaceWrongConstants(JPATH_ROOT . '/' . $override['overridePath'], $uniqid);
+
 			// Check scope condition
 			$app = JFactory::getApplication();
 
@@ -576,10 +578,8 @@ else
 				preg_match_all('/JPATH_COMPONENT(_SITE|_ADMINISTRATOR)|JPATH_COMPONENT/i', $bufferFile, $definesSource);
 
 				$overriderFilePath = $overriderFolder . $fileToOverride;
-				$bufferOverrideFile = file_get_contents($overriderFilePath);
 
-				// Detect if override file use some constants
-				preg_match_all('/JPATH_COMPONENT(_SITE|_ADMINISTRATOR)|JPATH_COMPONENT/i', $bufferOverrideFile, $definesSourceOverride);
+				$this->_replaceWrongConstants($overriderFilePath, $uniqid);
 
 				// Append "Default" to the class name (ex. ClassNameDefault). We insert the new class name into the original regex match to get
 				$rx = '/class *[a-z0-9]* *(extends|{|\n)/i';
@@ -598,7 +598,8 @@ else
 
 				$replaceClass = trim($originalClass) . 'Default';
 
-				if (count($definesSourceOverride[0]))
+				/*
+				if (count($definesSourceOverride[0]) && false)
 				{
 					$error = 'Plugin MVC Override:: Your override file use constants, please replace code constants<br />JPATH_COMPONENT -> JPATH_SOURCE_COMPONENT,'
 						. '<br />JPATH_COMPONENT_SITE -> JPATH_SOURCE_COMPONENT_SITE and<br />'
@@ -609,38 +610,40 @@ else
 				}
 				else
 				{
-					// Replace original class name by default
-					$bufferContent = str_replace($originalClass, $replaceClass, $bufferFile);
+				}
+				*/
 
-					// Replace JPATH_COMPONENT constants if found, because we are loading before define these constants
-					if (count($definesSource[0]))
-					{
-						$bufferContent = preg_replace(
-							array('/JPATH_COMPONENT/','/JPATH_COMPONENT_SITE/','/JPATH_COMPONENT_ADMINISTRATOR/'),
-							array($uniqid . 'JPATH_SOURCE_COMPONENT', $uniqid . 'JPATH_SOURCE_COMPONENT_SITE', $uniqid . 'JPATH_SOURCE_COMPONENT_ADMINISTRATOR'),
-							$bufferContent
-						);
-					}
+				// Replace original class name by default
+				$bufferContent = str_replace($originalClass, $replaceClass, $bufferFile);
 
-					// Change private methods to protected methods
-					if ($this->params->get('changePrivate', 0))
-					{
-						$bufferContent = preg_replace('/private *function/i', 'protected function', $bufferContent);
-					}
+				// Replace JPATH_COMPONENT constants if found, because we are loading before define these constants
+				if (count($definesSource[0]))
+				{
+					$bufferContent = preg_replace(
+						array('/JPATH_COMPONENT/','/JPATH_COMPONENT_SITE/','/JPATH_COMPONENT_ADMINISTRATOR/'),
+						array($uniqid . 'JPATH_SOURCE_COMPONENT', $uniqid . 'JPATH_SOURCE_COMPONENT_SITE', $uniqid . 'JPATH_SOURCE_COMPONENT_ADMINISTRATOR'),
+						$bufferContent
+					);
+				}
 
-					// Finally we can load the base class
-					$bufferContent = $this->_trimEndClodingTag($bufferContent);
-					eval('?>' . $bufferContent . PHP_EOL . '?>');
+				// Change private methods to protected methods
+				if ($this->params->get('changePrivate', 0))
+				{
+					$bufferContent = preg_replace('/private *function/i', 'protected function', $bufferContent);
+				}
 
-					require $overriderFilePath;
+				// Finally we can load the base class
+				$bufferContent = $this->_trimEndClodingTag($bufferContent);
+				eval('?>' . $bufferContent . PHP_EOL . '?>');
 
-					if ($this->paramGet('bruteMode') == 1 )
-					{
-						JFile::move($originalFilePath, $originalFilePath . '1');
-						file_put_contents($originalFilePath, '');
-						require $originalFilePath;
-						JFile::move($originalFilePath . '1', $originalFilePath);
-					}
+				require $overriderFilePath;
+
+				if ($this->paramGet('bruteMode') == 1 )
+				{
+					JFile::move($originalFilePath, $originalFilePath . '1');
+					file_put_contents($originalFilePath, '');
+					require $originalFilePath;
+					JFile::move($originalFilePath . '1', $originalFilePath);
 				}
 			}
 		}
@@ -952,6 +955,32 @@ else
 				define($uniqid . 'JPATH_SOURCE_COMPONENT', JPATH_BASE . '/components/' . $option);
 				define($uniqid . 'JPATH_SOURCE_COMPONENT_SITE', JPATH_SITE . '/components/' . $option);
 				define($uniqid . 'JPATH_SOURCE_COMPONENT_ADMINISTRATOR', JPATH_ADMINISTRATOR . '/components/' . $option);
+			}
+		}
+
+		/**
+		 * Replaces wrong old-style constants
+		 *
+		 * @param   string  $filePath  Full file path
+		 * @param   string  $uniqid    Prefix
+		 *
+		 * @return   void
+		 */
+		public function _replaceWrongConstants($filePath, $uniqid)
+		{
+			$bufferOverrideFile = file_get_contents($filePath);
+
+			// Detect if override file use some constants
+			preg_match_all('/JPATH_COMPONENT(_SITE|_ADMINISTRATOR)|JPATH_COMPONENT/i', $filePath, $definesSourceOverride);
+
+			if (count($definesSourceOverride[0]))
+			{
+				foreach ($definesSourceOverride[0] as $k => $constant)
+				{
+					$replace = $uniqid . str_replace('JPATH_', 'JPATH_SOURCE_', $constant);
+					$bufferOverrideFile = str_replace($constant, $replace, $bufferOverrideFile);
+					file_put_contents($filePath, $bufferOverrideFile);
+				}
 			}
 		}
 	}
