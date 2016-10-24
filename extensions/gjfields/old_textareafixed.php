@@ -127,7 +127,7 @@ class JFormFieldTextareafixed extends JFormFieldTextarea	{
 			}
 			else {
 				require JPATH_SITE.'/'.$addition[0];
-				if (!isset($$addition[1])) {
+				if (!isset(${$addition[1]})) {
 					JFactory::getApplication()->enqueueMessage(JText::_('LIB_GJFIELDS_LABELADDITION_VARIABLE_DOES_NOT_EXISTS').' : '.$addition[1].'<br/>'.$this->element['label'].' : '.$this->element['name'], 'error');
 				}
 				else {

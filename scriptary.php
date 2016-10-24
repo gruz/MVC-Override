@@ -29,6 +29,13 @@ class ScriptAry
 	 */
 	public function install($parent)
 	{
+
+		$manifest = $parent->getParent()->getManifest();
+
+		if (!$this->_installAllowed($manifest))
+		{
+			return false;
+		}
 		// $parent is the class calling this method
 		// $parent->getParent()->setRedirectURL('index.php?option=com_helloworld');
 	}
@@ -54,6 +61,14 @@ class ScriptAry
 	 */
 	public function update($parent)
 	{
+		$manifest = $parent->getParent()->getManifest();
+
+		if (!$this->_installAllowed($manifest))
+		{
+			return false;
+		}
+
+		return true;
 		// $parent is the class calling this method
 		// E.g. echo '<p>' . JText::_('COM_HELLOWORLD_UPDATE_TEXT') . '</p>';
 	}
@@ -77,6 +92,37 @@ class ScriptAry
 	}
 
 	/**
+	 * Checks is installtion is allowed
+	 *
+	 * @param   object  $manifest  Install XML manifest object
+	 *
+	 * @return   bool
+	 */
+	function _installAllowed($manifest)
+	{
+		$this->minimumJoomla = (string) $manifest['version'];
+
+		// Check for the minimum Joomla version before continuing
+		if (!empty($this->minimumJoomla) && !version_compare(JVERSION, $this->minimumJoomla, '>'))
+		{
+			$msg = JText::sprintf('JLIB_INSTALLER_MINIMUM_JOOMLA', $this->minimumJoomla);
+
+			// Older Joomlas don't have this line
+			if ($msg == 'JLIB_INSTALLER_MINIMUM_JOOMLA')
+			{
+				$msg = JText::sprintf("You don't have the minimum Joomla version requirement of J%s", $this->minimumJoomla);
+			}
+
+			JLog::add($msg, JLog::WARNING, 'jerror');
+
+			return false;
+		}
+
+		return true;
+	}
+
+
+	/**
 	 * Prepares some variables to be used later in the class, loads languages
 	 *
 	 * @param   string  $type    Is the type of change (install, update or discover_install)
@@ -88,11 +134,17 @@ class ScriptAry
 	{
 		$manifest = $parent->getParent()->getManifest();
 
+		if ($type != 'uninstall' && !$this->_installAllowed($manifest))
+		{
+			return false;
+		}
+
 		$this->ext_name = $this->_getExtensionName();
 		$this->ext_group = (string) $manifest['group'];
 		$this->ext_type = (string) $manifest['type'];
 		$className = get_called_class();
 		$ext = strtolower(substr($className, 0, 3));
+
 		switch ($ext)
 		{
 			case 'plg':
@@ -110,8 +162,15 @@ class ScriptAry
 		$this->langShortCode = null;
 		$this->default_lang = JComponentHelper::getParams('com_languages')->get('admin');
 		$language = JFactory::getLanguage();
-		$language->load($this->ext_full_name, dirname(__FILE__), 'en-GB', true);
-		$language->load($this->ext_full_name, dirname(__FILE__), $this->default_lang, true);
+
+		$language->load($this->ext_full_name, dirname(__FILE__), 'en-GB');
+
+		if ($this->default_lang != 'en-GB')
+		{
+			$language->load($this->ext_full_name, dirname(__FILE__), $this->default_lang);
+		}
+
+		return true;
 	}
 
 	/**
@@ -127,6 +186,11 @@ class ScriptAry
 	{
 		$manifest = $parent->getParent()->getManifest();
 
+		if ($type != 'uninstall' && !$this->_installAllowed($manifest))
+		{
+			return false;
+		}
+
 		if ($type != 'uninstall')
 		{
 			$this->_installExtensions($parent);
@@ -137,15 +201,15 @@ class ScriptAry
 			$this->_publishPlugin($this->ext_name, $this->ext_group, $this->ext_full_name);
 		}
 
-		// Remove min js and css
 		if ($this->ext_type == 'plugin')
 		{
-
+			// Remove min js and css
 			foreach (array('js', 'css') as $ftype)
 			{
-				$path = JPATH_ROOT .'/plugins/' . $this->ext_group . '/' . $this->ext_name . '/' ;
-				$pattern = '.*min\.'. $ftype . '';
+				$path = JPATH_ROOT . '/plugins/' . $this->ext_group . '/' . $this->ext_name . '/';
+				$pattern = '.*min\.' . $ftype . '';
 				$files = JFolder::files($path, $pattern, true, true);
+
 				foreach ($files as $fll)
 				{
 					JFile::delete($files);
@@ -153,18 +217,22 @@ class ScriptAry
 			}
 
 			$extensionTable = JTable::getInstance('extension');
-			// Find plugin id, in my case it was plg_ajax_ajaxhelpary
-			$pluginId = $extensionTable->find( array('element' => $this->ext_name, 'type' => 'plugin') );
+
+			// Find plugin id
+			$pluginId = $extensionTable->find(array('element' => $this->ext_name, 'type' => 'plugin'));
 			$extensionTable->load($pluginId);
-			$this->messages[] = JText::_('JOPTIONS').': <a class="menu-'.$this->ext_name.' " href="index.php?option=com_plugins&task=plugin.edit&extension_id='.$pluginId.'">'.JText::_($this->ext_full_name).'</a>';
+
+			$this->messages[] = JText::_('JOPTIONS')
+					. ': <a class="menu-' . $this->ext_name . ' " href="index.php?option=com_plugins&task=plugin.edit&extension_id=' . $pluginId . '">'
+					. JText::_($this->ext_full_name) . '</a>';
 		}
-
-
 
 		if (!empty($this->messages))
 		{
 			echo '<ul><li>' . implode('</li><li>', $this->messages) . '</li></ul>';
 		}
+
+		return true;
 
 		// E.g.: echo '<p>' . JText::_('COM_HELLOWORLD_POSTFLIGHT_' . $type . '_TEXT') . '</p>';
 	}

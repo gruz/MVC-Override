@@ -85,10 +85,13 @@ else
 			}
 
 			$app = JFactory::getApplication();
-			$router = $app->getRouter();
-			$uri     = clone JUri::getInstance();
 
-			$parsed = $router->parse($uri);
+			// ~ $router = $app->getRouter();
+			// ~ $uri     = clone JUri::getInstance();
+
+			// ~ $parsed = $router->parse($uri);
+
+			$parsed = $jinput->getArray();
 
 			if (isset($parsed['mvcoverride_disable']) && $parsed['mvcoverride_disable'] == '1' )
 			{
@@ -103,12 +106,7 @@ else
 				return;
 			}
 
-			$option = $this->getOption();
-
-			// Constants to replace JPATH_COMPONENT, JPATH_COMPONENT_SITE and JPATH_COMPONENT_ADMINISTRATOR
-			define('JPATH_SOURCE_COMPONENT', JPATH_BASE . '/components/' . $option);
-			define('JPATH_SOURCE_COMPONENT_SITE', JPATH_SITE . '/components/' . $option);
-			define('JPATH_SOURCE_COMPONENT_ADMINISTRATOR', JPATH_ADMINISTRATOR . '/components/' . $option);
+			// $option = $this->getOption();
 
 			jimport('joomla.filesystem.file');
 			jimport('joomla.filesystem.folder');
@@ -270,7 +268,8 @@ else
 
 			// Check override component condition. If a component was specified, check that it matches the current component.
 			$jinput = JFactory::getApplication()->input;
-			$option = $this->getOption();
+
+			// ~ $option = $this->getOption();
 
 			if (class_exists($override['className']))
 			{
@@ -279,10 +278,18 @@ else
 				return;
 			}
 
+			/*
 			if ($override['option'] != '' && $override['option'] != $option)
 			{
 				return;
 			}
+			*/
+
+			$option = $override['option'];
+
+			// $uniqid = uniqid();
+			$uniqid = strtoupper($option) . '_';
+			$this->_defineConstants($option, $uniqid);
 
 			// Check scope condition
 			$app = JFactory::getApplication();
@@ -307,7 +314,7 @@ else
 			// Detect if source file use some constants
 			$buffer = preg_replace(
 				array('/JPATH_COMPONENT/','/JPATH_COMPONENT_SITE/','/JPATH_COMPONENT_ADMINISTRATOR/'),
-				array('JPATH_SOURCE_COMPONENT','JPATH_SOURCE_COMPONENT_SITE','JPATH_SOURCE_COMPONENT_ADMINISTRATOR'),
+				array($uniqid . 'JPATH_SOURCE_COMPONENT', $uniqid . 'JPATH_SOURCE_COMPONENT_SITE', $uniqid . 'JPATH_SOURCE_COMPONENT_ADMINISTRATOR'),
 				$buffer
 			);
 
@@ -438,13 +445,10 @@ else
 				return;
 			}
 
-			$option = $this->getOption();
+			// ~ $option = $this->getOption();
 
 			// Application name
 			// $applicationName = JFactory::getApplication()->getName();
-
-			// Template name
-			$template = JFactory::getApplication()->getTemplate();
 
 			$includePath = $this->_getIncludePaths();
 
@@ -534,14 +538,30 @@ else
 					continue;
 				}
 
-				// Do not run override if current option and the default path option are different
-				// Avoid loading classes when not needed
 				preg_match('~.*/(com_[^/]*)/.*~Ui', $originalFilePath, $matches);
 
+				$option = '';
+
+				if (isset($matches[1]))
+				{
+					$option = $matches[1];
+				}
+
+				// ~ $uniqid = uniqid();
+
+				$uniqid = strtoupper($option) . '_';
+
+				$this->_defineConstants($option, $uniqid);
+
+				// Do not run override if current option and the default path option are different
+				// Avoid loading classes when not needed
+
+				/*
 				if (!empty($matches[1]) && $matches[1] != $option )
 				{
 					continue;
 				}
+				*/
 
 				// Include the original code and replace class name add a Default on
 				$bufferFile = file_get_contents($originalFilePath);
@@ -597,7 +617,7 @@ else
 					{
 						$bufferContent = preg_replace(
 							array('/JPATH_COMPONENT/','/JPATH_COMPONENT_SITE/','/JPATH_COMPONENT_ADMINISTRATOR/'),
-							array('JPATH_SOURCE_COMPONENT','JPATH_SOURCE_COMPONENT_SITE','JPATH_SOURCE_COMPONENT_ADMINISTRATOR'),
+							array($uniqid . 'JPATH_SOURCE_COMPONENT', $uniqid . 'JPATH_SOURCE_COMPONENT_SITE', $uniqid . 'JPATH_SOURCE_COMPONENT_ADMINISTRATOR'),
 							$bufferContent
 						);
 					}
@@ -695,11 +715,19 @@ else
 		}
 
 		/**
+		 * // ##mygruz20161023114834  Alas it seems no to be possible to get option
+		 * onAfterInitialize stage without running a full cycle of onAutoRoute.
+		 * Thus limiting running MVC Override by option has no sense, as not to run in vain
+		 * MVC Override we have to run in vain router rather big procedure every page load
+		 *
+		 * */
+		/**
 		 * Get's current $option as it's not defined at onAfterInitialize
 		 *
 		 * @author Gruz <arygroup@gmail.com>
 		 * @return	string			Option, i.e. com_content
 		 */
+		/*
 		public function getOption()
 		{
 			$jinput = JFactory::getApplication()->input;
@@ -707,13 +735,23 @@ else
 
 			if (empty($option) && JFactory::getApplication()->isSite())
 			{
-				$app = JFactory::getApplication();
-				$router = $app->getRouter();
-				$uri     = clone JUri::getInstance();
+				$parsed = $jinput->getArray();
 
-				$parsed = $router->parse($uri);
 				$option = $parsed['option'];
 
+				if (empty($option))
+				{
+					$app = JFactory::getApplication();
+
+					$router = $app->getRouter();
+					$uri     = JUri::getInstance();
+
+					$parsed = $router->parse($uri);
+					$option = $parsed['option'];
+
+				}
+
+			*/
 				/*
 				$menuDefault = JFactory::getApplication()->getMenu()->getDefault();
 				if (is_int($menuDefault) && $menuDefault == 0) return;
@@ -723,10 +761,12 @@ else
 				$component = $db->loadObject();
 				$option = $component->element;
 				*/
+			/*
 			}
 
 			return $option;
 		}
+		*/
 
 		/**
 		 * Override JForm XML
@@ -834,7 +874,11 @@ else
 			}
 
 			// Template name
-			$template = JFactory::getApplication()->getTemplate();
+
+			// This direct approach on some reason breaks megamenu on multilanguage web-sites
+			// ~ $template = JFactory::getApplication('site')->getTemplate();
+			$app = clone JFactory::getApplication();
+			$template = $app->getTemplate();
 
 			// Code paths
 			$includePath = array();
@@ -876,11 +920,11 @@ else
 		 *
 		 * @return   string  Ready for eval code
 		 */
-		function _trimEndClodingTag($bufferContent)
+		public function _trimEndClodingTag($bufferContent)
 		{
 			$bufferContent = explode('?>', $bufferContent);
 
-			$last = end ($bufferContent);
+			$last = end($bufferContent);
 
 			if (JString::trim($last) == '')
 			{
@@ -890,6 +934,25 @@ else
 			$bufferContent = implode('?>', $bufferContent);
 
 			return $bufferContent;
+		}
+
+		/**
+		 * Prepares constants used by MVC override
+		 *
+		 * @param   string  $option  Component name, e.g. com_users
+		 * @param   string  $uniqid  String to prefix the constant to make it unique per component
+		 *
+		 * @return   void
+		 */
+		protected function _defineConstants($option, $uniqid)
+		{
+			if (!defined($uniqid . 'JPATH_SOURCE_COMPONENT'))
+			{
+				// Constants to replace JPATH_COMPONENT, JPATH_COMPONENT_SITE and JPATH_COMPONENT_ADMINISTRATOR
+				define($uniqid . 'JPATH_SOURCE_COMPONENT', JPATH_BASE . '/components/' . $option);
+				define($uniqid . 'JPATH_SOURCE_COMPONENT_SITE', JPATH_SITE . '/components/' . $option);
+				define($uniqid . 'JPATH_SOURCE_COMPONENT_ADMINISTRATOR', JPATH_ADMINISTRATOR . '/components/' . $option);
+			}
 		}
 	}
 }
