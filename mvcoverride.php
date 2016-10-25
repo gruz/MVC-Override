@@ -270,8 +270,7 @@ else
 			$jinput = JFactory::getApplication()->input;
 
 			// ~ $option = $this->getOption();
-
-			if (class_exists($override['className']))
+			if (class_exists($override['className'], false))
 			{
 				$this->message(JText::_('PLG_SYSTEM_MVCOVERRIDE_CLASS_IS_ALREADY_DECLARED') . ': ' . $override['className'], 'notice');
 
@@ -291,7 +290,7 @@ else
 			$uniqid = strtoupper($option) . '_';
 			$this->_defineConstants($option, $uniqid);
 
-			$this->_replaceWrongConstants(JPATH_ROOT . '/' . $override['overridePath'], $uniqid);
+			$this->_replaceWrongConstants($override['overridePath'], $uniqid);
 
 			// Check scope condition
 			$app = JFactory::getApplication();
@@ -344,7 +343,7 @@ else
 			// The class name should always be the second word. Make sure we have a class name before proceeding
 			if (isset($name[1]))
 			{
-				if (!class_exists($name[1] . 'Default'))
+				if (!class_exists($name[1] . 'Default', false))
 				{
 					// Include additional supporting files
 					$includes = explode(PHP_EOL, $override['includes']);
@@ -360,7 +359,7 @@ else
 							if (!empty($iname))
 							{
 								// JLoader::register($iname, $include);
-								if (!class_exists($iname))
+								if (!class_exists($iname, false))
 								{
 									require $include;
 								}
@@ -421,7 +420,7 @@ else
 
 				if ($this->paramGet('bruteMode') == 1 )
 				{
-					if (!class_exists($name[1]))
+					if (!class_exists($name[1], false))
 					{
 						require $override['overridePath'];
 					}
@@ -606,7 +605,7 @@ else
 						. 'JPATH_COMPONENT_ADMINISTRATOR -> JPATH_SOURCE_COMPONENT_ADMINISTRATOR';
 					throw new Exception(str_replace('<br />', PHP_EOL, $error), 500);
 
-					// JFactory::getApplication()->enqueueMessage($error, 'error');
+					* // JFactory::getApplication()->enqueueMessage($error, 'error');
 				}
 				else
 				{
