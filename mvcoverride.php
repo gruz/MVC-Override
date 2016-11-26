@@ -512,10 +512,18 @@ else
 					{
 						unset($files_to_override[$fileToOverride]);
 					}
+					if (strpos($fileToOverride, '/components/com_') === 0)
+					{
+						unset($files_to_override[$fileToOverride]);
+					}
 				}
 				else
 				{
 					if (strpos($fileToOverride, '/administrator/com_') === 0)
+					{
+						unset($files_to_override[$fileToOverride]);
+					}
+					if (strpos($fileToOverride, '/administrator/components/com_') === 0)
 					{
 						unset($files_to_override[$fileToOverride]);
 					}
