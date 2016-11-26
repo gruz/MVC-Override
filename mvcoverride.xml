@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system" method="upgrade">
   <name>PLG_SYSTEM_MVCOVERRIDE</name>
   <author>Gruz</author>
-  <creationDate>2016-10-25</creationDate>
+  <creationDate>2016-11-26</creationDate>
   <copyright>Copyright (C) 2004-2016 Gruz All rights reserved.</copyright>
   <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
   <authorEmail>arygroup@gmail.com</authorEmail>
   <authorUrl>http://gruz.org.ua/en/extensions/joomla-mvc-override.html</authorUrl>
-  <version>1.1.9</version>
+  <version>1.1.10</version>
   <description>PLG_SYSTEM_MVCOVERRIDE_DESC</description>
   <files>
     
