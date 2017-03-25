@@ -10,7 +10,6 @@
 defined('_JEXEC') or die;
 
 extract($displayData);
-
 /**
  * Layout variables
  * -----------------
@@ -62,7 +61,8 @@ $link = 'index.php?option=com_users&amp;view=users&amp;layout=modal&amp;tmpl=com
 It was:
 JHtml::script('jui/fielduser.min.js', false, true, false, false, true);
 It became:*/
-JHtml::script(Juri::root() .'/libraries/gjfields/js/fieldusers.js', false, true, false, false, true);
+JPluginGJFields::addJSorCSS('fieldusers.js', 'lib_gjfields', $debug = false);
+// ~ JHtml::script(Juri::root() .'/libraries/gjfields/js/fieldusers.js', false, true, false, false, true);
 /*##mygruz20160510033514 } */
 ?>
 <?php // Create a dummy text field with the user name. ?>

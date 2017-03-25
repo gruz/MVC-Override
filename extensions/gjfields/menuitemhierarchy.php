@@ -1,10 +1,9 @@
 <?php
 /**
- * @package     Joomla.Libraries
- * @subpackage  Form
+ * @package    GJFileds
  *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright  0000 Copyright (C) All rights reversed.
+ * @license    http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL or later
  */
 
 /*##mygruz20130718204543 {
@@ -26,7 +25,7 @@ require_once realpath(JPATH_ADMINISTRATOR . '/components/com_menus/helpers/menus
  * @subpackage  Form
  * @since       1.6
  */
-class JFormFieldMenuitemhierarchy extends JFormFieldGroupedList
+class GJFieldsFormFieldMenuitemhierarchy extends JFormFieldGroupedList
 {
 	/**
 	 * The form field type.
@@ -68,9 +67,11 @@ class JFormFieldMenuitemhierarchy extends JFormFieldGroupedList
 				/*##mygruz20130718204314 {
 				It was:
 				It became:*/
-				$repeate = $link->level -1 ;
-				if ($repeate>0) {
-					$link->text = str_repeat('-',$repeate).' '.$link->text;
+				$repeate = $link->level - 1;
+
+				if ($repeate > 0)
+				{
+					$link->text = str_repeat('-', $repeate) . ' ' . $link->text;
 				}
 				/*##mygruz20130718204314 } */
 				$groups[$menuType][] = JHtml::_('select.option', $link->value, $link->text, 'value', 'text', in_array($link->type, $disable));
@@ -91,9 +92,11 @@ class JFormFieldMenuitemhierarchy extends JFormFieldGroupedList
 				/*##mygruz20130718204314 {
 				It was:
 				It became:*/
-				$repeate = $link->level -1 ;
-				if ($repeate>0) {
-					$link->text = str_repeat('-',$repeate).' '.$link->text;
+				$repeate = $link->level - 1;
+
+				if ($repeate > 0)
+				{
+					$link->text = str_repeat('-', $repeate) . ' ' . $link->text;
 				}
 				/*##mygruz20130718204314 } */
 					$groups[$menu->menutype][] = JHtml::_(
@@ -109,4 +112,17 @@ class JFormFieldMenuitemhierarchy extends JFormFieldGroupedList
 
 		return $groups;
 	}
+}
+
+// Preserve compatibility
+if (!class_exists('JFormFieldMenuitemhierarchy'))
+{
+	/**
+	 * Old-fashioned field name
+	 *
+	 * @since  1.2.0
+	 */
+				class JFormFieldMenuitemhierarchy extends GJFieldsFormFieldMenuitemhierarchy
+				{
+				}
 }

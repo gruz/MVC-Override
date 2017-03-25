@@ -1,10 +1,9 @@
 <?php
 /**
- * @package     Joomla.Libraries
- * @subpackage  Form
+ * @package    GJFields
  *
- * @copyright   Copyright (C) 2005 - 2013 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright  0000 Copyleft (є) 2017 - All rights reversed
+ * @license    GNU General Public License version 2 or later; see LICENSE
  */
 
 defined('JPATH_PLATFORM') or die;
@@ -12,12 +11,24 @@ defined('JPATH_PLATFORM') or die;
 /**
  * Field to select a user id from a modal list.
  *
+ * Seems to be not used nowadays // ##mygruz20170201085407
+ *
  * @package     Joomla.Libraries
  * @subpackage  Form
  * @since       1.6.0
  */
-if (!class_exists('JFormFieldGJFields')) {include ('gjfields.php');}
-class JFormFieldUsergroups extends JFormFieldGJFields
+if (!class_exists('GJFieldsFormField'))
+{
+	include 'gjfields.php';
+}
+
+/**
+ * User groups
+ *
+ * @author  Gruz <arygroup@gmail.com>
+ * @since   0.0.1
+ */
+class GJFieldsFormFieldUsergroups extends GJFieldsFormField
 {
 	/**
 	 * The form field type.
@@ -34,7 +45,7 @@ class JFormFieldUsergroups extends JFormFieldGJFields
 	 *
 	 * @since   1.6.0
 	 */
-	function getInput()
+	public function getInput()
 	{
 		$attr = '';
 
@@ -48,12 +59,13 @@ class JFormFieldUsergroups extends JFormFieldGJFields
 		$selected = $this->value;
 		$name = $this->name;
 
-		if (isset($this->element['excludeLevels'])) {
-
-			$excludeLevels = explode (',',$this->element['excludeLevels']);
-			$excludeLevels = array_map('trim',$excludeLevels);
+		if (isset($this->element['excludeLevels']))
+		{
+			$excludeLevels = explode(',', $this->element['excludeLevels']);
+			$excludeLevels = array_map('trim', $excludeLevels);
 		}
-		else {
+		else
+		{
 			$excludeLevels = array();
 		}
 
@@ -69,10 +81,12 @@ class JFormFieldUsergroups extends JFormFieldGJFields
 
 		for ($i = 0, $n = count($options); $i < $n; $i++)
 		{
-			if (in_array($options[$i]->level,$excludeLevels)) {
+			if (in_array($options[$i]->level, $excludeLevels))
+			{
 				unset($options[$i]);
 				continue;
 			}
+
 			$options[$i]->text = str_repeat('- ', $options[$i]->level) . $options[$i]->text;
 		}
 
@@ -82,8 +96,19 @@ class JFormFieldUsergroups extends JFormFieldGJFields
 			array_unshift($options, JHtml::_('select.option', '', JText::_('JOPTION_ACCESS_SHOW_ALL_GROUPS')));
 		}
 
-		return JHtml::_('select.genericlist', $options, $name, array('id'=>uniqid(), 'list.attr' => $attr, 'list.select' => $selected));
+		return JHtml::_('select.genericlist', $options, $name, array('id' => uniqid(), 'list.attr' => $attr, 'list.select' => $selected));
 	}
+}
 
-
+// Preserve compatibility
+if (!class_exists('JFormFieldUsergroups'))
+{
+	/**
+	 * Old-fashioned field name
+	 *
+	 * @since  1.2.0
+	 */
+				class JFormFieldUsergroups extends GJFieldsFormFieldUsergroups
+				{
+				}
 }

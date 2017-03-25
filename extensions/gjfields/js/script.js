@@ -1,16 +1,17 @@
-jQuery( document ).ready(function($) { // Clean empty li elements, mostly for hathor backend template
-	$('ul li:not([class],[id]), ul:not([class],[id]), div:not([class],[id]) ').filter(function() {
-		return $(this).text().trim() == '';
-	}).remove();
+/* // ##mygruz20170210033852  This part conflicts with
+*/
+jQuery( document ).ready(function($) {
+	if (typeof( Calendar ) == "undefined")
+	{
+		// Clean empty li elements, mostly for hathor backend template
+		$('ul li:not([class],[id]), ul:not([class],[id]), div:not([class],[id]) ').filter(function() {
+			return $(this).text().trim() == '';
+		}).remove();
+	}
 });
-
-
-
 
 // JavaScript Document
 if (typeof( window['gjScripts'] ) == "undefined") {
-	var scripts= document.getElementsByTagName('script');
-	var JVERSION = scripts[scripts.length-1].src.split('.js?v=')[1];
 
 	window.addEvent('domready', function() {
 		gjScripts = new gjScripts();
@@ -19,12 +20,8 @@ if (typeof( window['gjScripts'] ) == "undefined") {
 	var gjScripts = new Class({
 		initialize: function () {
 			var self = this;
-			if (JVERSION>='3.0') {//J3+
-				self.cleanEmptyControlGroups();
-			}
-			else {//2.5
-				self.cleanEmptyLists();
-			}
+			self.cleanEmptyControlGroups();
+			self.cleanEmptyLists();
 		},
 		moveElementOneNodeUp: function  (element) {
 			if (!element) {return;}

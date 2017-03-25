@@ -10,10 +10,15 @@
 defined('JPATH_PLATFORM') or die;
 
 JFormHelper::loadFieldClass('textarea');
-//if (!class_exists('JFormFieldGJFields')) {include ('gjfields.php');}
 
-
-class JFormFieldTextareafixed extends JFormFieldTextarea	{
+/**
+ * Textarea with additional features
+ *
+ * @author  Gruz <arygroup@gmail.com>
+ * @since   0.0.1
+ */
+class GJFieldsFormFieldTextareafixed extends JFormFieldTextarea
+{
 	/**
 	 * The form field type.
 	 *
@@ -26,104 +31,101 @@ class JFormFieldTextareafixed extends JFormFieldTextarea	{
 	 * Method to get the textarea field input markup.
 	 * Use the rows and columns attributes to specify the dimensions of the area.
 	 *
-	 * @return  string  The field input markup.
-	 * @since   11.1
+	 * @return  void
 	 */
-	function getInput()
+	public function getInput()
 	{
-		if (empty($this->value)) {
-			$this->value = JText::_(JText::_($this->element['default']).$this->Addition('default'));
+		if (empty($this->value))
+		{
+			$this->value = JText::_(JText::_($this->element['default']) . $this->Addition('default'));
 		}
+
 		$output = parent::getInput();
 		$output .= $this->Addition('input');
+
 		return $output;
 	}
 
+	/**
+	 * Get label override
+	 *
+	 * Appends additional output to the label
+	 *
+	 * @return   void
+	 */
 	public function getLabel()
 	{
 		$output = parent::getLabel();
-		$output = str_replace('</label>',$this->Addition('label').'</label>',$output);
+		$output = str_replace('</label>', $this->Addition('label') . '</label>', $output);
+
 		return $output;
-		if ($this->hidden)
-		{
-			return '';
-		}
-
-		// Get the label text from the XML element, defaulting to the element name.
-		$text = $this->element['label'] ? (string) $this->element['label'] : (string) $this->element['name'];
-		$text = $this->translateLabel ? JText::_($text) : $text;
-
-		$text .= $this->Addition('label');
-
-		// Forcing the Alias field to display the tip below
-		$position = $this->element['name'] == 'alias' ? ' data-placement="bottom" ' : '';
-
-		$description = ($this->translateDescription && !empty($this->description)) ? JText::_($this->description) : $this->description;
-		$displayData = array(
-				'text'        => $text,
-				'description' => $description,
-				'for'         => $this->id,
-				'required'    => (bool) $this->required,
-				'classes'     => explode(' ', $this->labelclass),
-				'position'    => $position
-			);
-
-			$text     = $displayData['text'];
-			$desc     = $displayData['description'];
-			$for      = $displayData['for'];
-			$req      = $displayData['required'];
-			$classes  = array_filter((array) $displayData['classes']);
-			$position = $displayData['position'];
-
-			$id = $for . '-lbl';
-			$title = '';
-
-			// If a description is specified, use it to build a tooltip.
-			if (!empty($desc))	{
-				JHtml::_('bootstrap.tooltip');
-				$classes[] = 'hasTooltip';
-				$title     = ' title="' . JHtml::tooltipText(null,$desc, 0) . '"';
-			}
-
-			// If required, there's a class for that.
-			if ($req)
-			{
-				$classes[] = 'required';
-			}
-
-			$return = '<label id="'	.$id.'" for="'	.$for	.'" class="'.implode(' ', $classes)	.'" '	.$title	.$position	.'>'	.$text;
-			if ($req) {
-				$return .='<span class="star">&#160;*</span>';
-			}
-			$return .= '</label>';
-			return $return;
 	}
 
-	function Addition ($fieldNameCore) {
-		$fName = (string)$this->element[$fieldNameCore.'Addition'];
-		if (!empty($fName)) {
+	/**
+	 * Adds additional text to the output form an additional file
+	 *
+	 * @param   string  $fieldNameCore  Name of the element where additional should be added to
+	 *
+	 * @return   string  Additional HTML to be added to the output
+	 */
+	protected function Addition ($fieldNameCore)
+	{
+		$fName = (string) $this->element[$fieldNameCore . 'Addition'];
+
+		if (!empty($fName))
+		{
 			$text = '';
-			$addition = explode(';$',$this->element[$fieldNameCore.'Addition']);
-			if (!file_exists(JPATH_SITE.'/'.$addition[0])) {
-				JFactory::getApplication()->enqueueMessage(JText::_('LIB_GJFIELDS_LABELADDITION_FILE_DOES_NOT_EXISTS').' : '.$addition[0].'<br/>'.$this->element['label'].' : '.$this->element['name'], 'error');
+			$addition = explode(';$', $this->element[$fieldNameCore . 'Addition']);
+
+			if (!file_exists(JPATH_SITE . '/' . $addition[0]))
+			{
+				JFactory::getApplication()->enqueueMessage(
+					JText::_('LIB_GJFIELDS_LABELADDITION_FILE_DOES_NOT_EXISTS')
+						. ' : ' . $addition[0] . '<br/>' . $this->element['label']
+						. ' : ' . $this->element['name'],
+					'error');
 			}
-			else {
-				require JPATH_SITE.'/'.$addition[0];
-				if (!isset(${$addition[1]})) {
-					JFactory::getApplication()->enqueueMessage(JText::_('LIB_GJFIELDS_LABELADDITION_VARIABLE_DOES_NOT_EXISTS').' : '.$addition[1].'<br/>'.$this->element['label'].' : '.$this->element['name'], 'error');
+			else
+			{
+				require JPATH_SITE . '/' . $addition[0];
+
+				if (!isset(${$addition[1]}))
+				{
+					JFactory::getApplication()->enqueueMessage(
+						JText::_('LIB_GJFIELDS_LABELADDITION_VARIABLE_DOES_NOT_EXISTS')
+							. ' : ' . $addition[1] . '<br/>' . $this->element['label']
+							. ' : ' . $this->element['name'],
+						'error');
 				}
-				else {
+				else
+				{
 					$additionVar = ${$addition[1]};
-					if (!is_array($additionVar)) {
+
+					if (!is_array($additionVar))
+					{
 						$text .= $additionVar;
 					}
-					else {
-						$text .= implode('',$additionVar);
+					else
+					{
+						$text .= implode('', $additionVar);
 					}
 				}
 			}
+
 			return $text;
 		}
 	}
 }
 
+// Preserve compatibility
+if (!class_exists('JFormFieldTextareafixed'))
+{
+	/**
+	 * Old-fashioned field name
+	 *
+	 * @since  1.2.0
+	 */
+				class JFormFieldTextareafixed extends GJFieldsFormFieldTextareafixed
+				{
+				}
+}

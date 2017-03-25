@@ -37,6 +37,7 @@ else
 	 */
 	class PlgSystemMVCOverride extends JPluginGJFields
 				{
+		public $regexp = 'class +[a-z0-9]* *(extends|{|\n)';
 		/**
 		 * Constructor
 		 *
@@ -320,7 +321,7 @@ else
 			);
 
 			// Determine the class name or use the given class
-			$rx = '/class *[a-z0-9]* *(extends|{|\n)/i';
+			$rx = $this->regexp;
 
 			if ($override['className'] != '')
 			{
@@ -426,10 +427,25 @@ else
 					}
 
 					$originalFilePath = $override['basePath'];
-					JFile::move($originalFilePath, $originalFilePath . '1');
-					file_put_contents($originalFilePath, '');
-					require $originalFilePath;
-					JFile::move($originalFilePath . '1', $originalFilePath);
+
+					$lck_file = JFactory::getApplication()->get('tmp_path') . "/mvcoverride-" . sha1_file($originalFilePath) . ".lck";
+
+					$fp = fopen($lck_file, "w");
+
+					// Acquire an exclusive lock
+					if (flock($fp, LOCK_EX))
+					{
+							JFile::move($originalFilePath, $originalFilePath . 'orig.php');
+							file_put_contents($originalFilePath, '');
+							require $originalFilePath;
+							JFile::move($originalFilePath . 'orig.php', $originalFilePath);
+							unlink($lck_file);
+
+							// Release the lock
+							flock($fp, LOCK_UN);
+					}
+
+					fclose($fp);
 				}
 			}
 		}
@@ -512,6 +528,7 @@ else
 					{
 						unset($files_to_override[$fileToOverride]);
 					}
+
 					if (strpos($fileToOverride, '/components/com_') === 0)
 					{
 						unset($files_to_override[$fileToOverride]);
@@ -523,6 +540,7 @@ else
 					{
 						unset($files_to_override[$fileToOverride]);
 					}
+
 					if (strpos($fileToOverride, '/administrator/components/com_') === 0)
 					{
 						unset($files_to_override[$fileToOverride]);
@@ -589,7 +607,7 @@ else
 				$this->_replaceWrongConstants($overriderFilePath, $uniqid);
 
 				// Append "Default" to the class name (ex. ClassNameDefault). We insert the new class name into the original regex match to get
-				$rx = '/class *[a-z0-9]* *(extends|{|\n)/i';
+				$rx = $this->regexp;
 
 				preg_match($rx, $bufferFile, $classes);
 
@@ -647,10 +665,25 @@ else
 
 				if ($this->paramGet('bruteMode') == 1 )
 				{
-					JFile::move($originalFilePath, $originalFilePath . '1');
-					file_put_contents($originalFilePath, '');
-					require $originalFilePath;
-					JFile::move($originalFilePath . '1', $originalFilePath);
+					$lck_file = JFactory::getApplication()->get('tmp_path') . "/mvcoverride-" . sha1_file($originalFilePath) . ".lck";
+					$fp = fopen($lck_file, "w");
+
+					// Acquire an exclusive lock. If we can't get the lock now, PHP will block until the lock becomes available to us
+					if (flock($fp, LOCK_EX))
+					{
+						JFile::move($originalFilePath, $originalFilePath . '.orig.php');
+						file_put_contents($originalFilePath, '');
+						require $originalFilePath;
+						JFile::move($originalFilePath . '.orig.php', $originalFilePath);
+
+						// It's possible to delete during a LOCK_EX mode!
+						unlink($lck_file);
+
+						// Release the lock
+						flock($fp, LOCK_UN);
+					}
+
+					fclose($fp);
 				}
 			}
 		}
@@ -668,7 +701,7 @@ else
 			$buffer = file_get_contents($filePath);
 
 			// Get the class name
-			$rx = '/class *[a-z0-9]* *(extends|{|\n)/i';
+			$rx = $this->regexp;
 			preg_match($rx, $buffer, $classes);
 
 			if (empty($classes))

@@ -1,18 +1,29 @@
 <?php
 /**
- * @package     GJFileds
+ * @package    GJFileds
  *
- * @copyright   Copyright (C) All rights reversed.
- * @license - http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL or later
+ * @copyright  0000 Copyright (C) All rights reversed.
+ * @license    http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL or later
  */
 
 // No direct access
 defined('_JEXEC') or die;
 
-	// For Joomla 1.6
-	jimport('joomla.form.formfield');
+jimport('joomla.form.formfield');
 
-class JFormFieldNN_Version extends JFormField 	{
+if (!class_exists('GJFieldsFormField'))
+{
+	include 'gjfields.php';
+}
+
+/**
+ * Version field
+ *
+ * @author  Gruz <arygroup@gmail.com>
+ * @since   0.0.1
+ */
+class GJFieldsFormFieldVersion extends GJFieldsFormField
+{
 	/**
 	 * The form field type
 	 *
@@ -20,43 +31,44 @@ class JFormFieldNN_Version extends JFormField 	{
 	 */
 	public $type = 'Version';
 
+	/**
+	 * Cap
+	 *
+	 * @return   void
+	 */
 	protected function getLabel()
 	{
 		return;
 	}
 
-	protected function getInput()	{
-
+	/**
+	 * Get HTML output
+	 *
+	 * @return   string
+	 */
+	public function getInput()
+	{
 		$return = '';
 
-		if(version_compare(JVERSION,'3.0','ge')) {
+		/*
+		if (version_compare(JVERSION, '3.0', 'ge'))
+		{
 			// Add CSS and JS once, define base global flag - runc only once
-			if (!isset($GLOBALS[$this->type.'_initialized'])) {
-				$path_to_assets = JURI::root().'libraries/gjfields/';
-				/*
-				$GLOBALS[$this->type.'_initialized'] = true;
-				// It's my development need. If I use the same file for developing J2.5 and J3.0 I cannot properly determine the path, so I assume it's a default one (else)
-				if (strpos(__DIR__,JPATH_SITE)) {
-					$baseurl = str_replace('administrator/','',JURI::base());
-					$path_to_assets = JPath::clean(str_replace($baseurl,'',$baseurl . str_replace(JPATH_SITE,'',__DIR__).'/'));
-				}
-				else {
-					$path_to_assets = JURI::root().'libraries/gjfields/';
+			if (!isset($GLOBALS[$this->type . '_initialized']))
+			{
+				$path_to_assets = JURI::root() . 'libraries/gjfields/';
 
-				}
-				*/
-
-				$scriptname = $path_to_assets.'js/'.JString::strtolower($this->type).'.js';
+				$scriptname = $path_to_assets . 'js/' . JString::strtolower($this->type) . '.js';
 				$doc = JFactory::getDocument();
 				$doc->addScript($scriptname);
 			}
-			$return .=  '<input type="hidden" name="' . $this->name
-			//. '" id="' . $this->id
-			. '" value="'
-			. htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8') . '"' .  ' />'; // This input is used to store active tab position
 
-
+			// This input is used to store active tab position
+			$return .= '<input type="hidden" name="' . $this->name
+				. '" value="'
+				. htmlspecialchars($this->value, ENT_COMPAT, 'UTF-8') . '"' . ' />';
 		}
+		*/
 
 		$xml = $this->def('xml');
 
@@ -67,16 +79,21 @@ class JFormFieldNN_Version extends JFormField 	{
 		$query
 			->select($db->quoteName(array('element','folder','type')))
 			->from($db->quoteName('#__extensions'))
-			->where($db->quoteName('extension_id').'='.$db->Quote($jinput->get('extension_id',null)));
-		$db->setQuery($query,0,1);
+			->where($db->quoteName('extension_id') . '=' . $db->Quote($jinput->get('extension_id', null)));
+		$db->setQuery($query, 0, 1);
 		$row = $db->loadAssoc();
-		if ($row['type'] == 'plugin') {
-			$this->plg_full_name = 'plg_'.$row['folder'].'_'.$row['element'];
-			$this->langShortCode = null;//is used for building joomfish links
+
+		if ($row['type'] == 'plugin')
+		{
+			$this->plg_full_name = 'plg_' . $row['folder'] . '_' . $row['element'];
+
+			// Is used for building joomfish links
+			$this->langShortCode = null;
+
 			$this->default_lang = JComponentHelper::getParams('com_languages')->get('admin');
 			$language = JFactory::getLanguage();
-			$language->load($this->plg_full_name, JPATH_ROOT.dirname( $xml), 'en-GB', true);
-			$language->load($this->plg_full_name, JPATH_ROOT.dirname( $xml), $this->default_lang, true);
+			$language->load($this->plg_full_name, JPATH_ROOT . dirname($xml), 'en-GB', true);
+			$language->load($this->plg_full_name, JPATH_ROOT . dirname($xml), $this->default_lang, true);
 		}
 
 		$extension = $this->def('extension');
@@ -84,14 +101,19 @@ class JFormFieldNN_Version extends JFormField 	{
 		$user = JFactory::getUser();
 		$authorise = $user->authorise('core.manage', 'com_installer');
 
-		if (!JString::strlen($extension) || !JString::strlen($xml) || !$authorise) {
+		if (!JString::strlen($extension) || !JString::strlen($xml) || !$authorise)
+		{
 			return;
 		}
 
 		$version = '';
-		if ($xml) {
-			$xml = JApplicationHelper::parseXMLInstallFile(JPATH_SITE.'/'.$xml);
-			if ($xml && isset($xml['version'])) {
+
+		if ($xml)
+		{
+			$xml = JApplicationHelper::parseXMLInstallFile(JPATH_SITE . '/' . $xml);
+
+			if ($xml && isset($xml['version']))
+			{
 				$version = $xml['version'];
 			}
 		}
@@ -103,14 +125,21 @@ class JFormFieldNN_Version extends JFormField 	{
 		$css .= "fieldset.radio label {width:auto;}";
 		$document->addStyleDeclaration($css);
 
-
-		$return .= '<span class="version">'.JText::_('JVERSION').' '.$version."</span>";
+		$return .= '<span class="version">' . JText::_('JVERSION') . ' ' . $version . "</span>";
 
 		return $return;
 	}
+}
 
-
-	private function def( $val, $default = '' )	{
-		return ( isset( $this->element[$val] ) && (string) $this->element[$val] != '' ) ? (string) $this->element[$val] : $default;
-	}
+// Preserve compatibility
+if (!class_exists('JFormFieldNN_Version'))
+{
+	/**
+	 * Old-fashioned field name
+	 *
+	 * @since  1.2.0
+	 */
+				class JFormFieldNN_Version extends GJFieldsFormFieldVersion
+				{
+				}
 }

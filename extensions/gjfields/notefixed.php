@@ -2,11 +2,10 @@
 /**
  * Makes it compatible with hathor backend template
  *
- * @package     Joomla.Platform
- * @subpackage  Form
+ * @package    GJFields
  *
- * @copyright   Copyright (C) 2005 - 2016 Open Source Matters, Inc. All rights reserved.
- * @license     GNU General Public License version 2 or later; see LICENSE
+ * @copyright  Copyright (C) 2005 - 2016 Open Source Matters, Inc. All rights reserved.
+ * @license    GNU General Public License version 2 or later; see LICENSE
  */
 
 defined('JPATH_PLATFORM') or die;
@@ -18,7 +17,7 @@ defined('JPATH_PLATFORM') or die;
  * @link   http://www.w3.org/TR/html-markup/input.text.html#input.text
  * @since  11.1
  */
-class JFormFieldNoteFixed extends JFormField
+class GJFieldsFormFieldNoteFixed extends JFormField
 {
 	/**
 	 * The form field type.
@@ -63,11 +62,14 @@ class JFormFieldNoteFixed extends JFormField
 		return '</div><div ' . $class . '>' . implode('', $html);
 		It became:*/
 		$app    = JFactory::getApplication();
-		if ($app->getTemplate() != 'hathor') {
+
+		if ($app->getTemplate() != 'hathor')
+		{
 			return '</div><div ' . $class . '>' . implode('', $html);
 		}
-		else {
-			return '<div ' . $class . '>' . implode('', $html).'</div>';
+		else
+		{
+			return '<div ' . $class . '>' . implode('', $html) . '</div>';
 		}
 		/*##mygruz20160410235501 } */
 	}
@@ -83,4 +85,17 @@ class JFormFieldNoteFixed extends JFormField
 	{
 		return '';
 	}
+}
+
+// Preserve compatibility
+if (!class_exists('JFormFieldNoteFixed'))
+{
+	/**
+	 * Old-fashioned field name
+	 *
+	 * @since  1.2.0
+	 */
+				class JFormFieldNoteFixed extends GJFieldsFormFieldNoteFixed
+				{
+				}
 }

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension version="2.5" type="file" method="upgrade">
   <name>en_GB_gjfields_language_pack</name>
-  <version>2016-10-10 12:11</version>
-  <creationDate>2016-10-10 12:11</creationDate>
+  <version>2017-03-10 01:06</version>
+  <creationDate>2017-03-10 01:06</creationDate>
   <author>AryGroup</author>
   <email>arygroup@gmail.com</email>
   <authorUrl>http://arygroup.ga</authorUrl>
-  <copyright>Copyright (C) 2004-2016 Gruz. All rights reserved.</copyright>
+  <copyright>Copyright (C) 2004-2017 Gruz. All rights reserved.</copyright>
   <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
   <description>en-GB GJFields - additional JFrom fields for Joomla language pack</description>
   <scriptfile>scriptfile.php</scriptfile>

@@ -15,7 +15,7 @@ JFormHelper::loadFieldClass('user');
  *
  * @since  1.6
  */
-class JFormFieldUsers extends JFormField
+class GJFieldsFormFieldUsers extends JFormField
 {
 	/**
 	 * The form field type.
@@ -64,38 +64,37 @@ class JFormFieldUsers extends JFormField
 		{
 			throw new UnexpectedValueException(sprintf('%s has no layout assigned.', $this->name));
 		}
+
 		/*##mygruz20160509151935 {
 		It was:
 		return $this->getRenderer($this->layout)->render($this->getLayoutData());
 		It became:*/
 
-		//~ $document = JFactory::getDocument();
-			//~ $js = '
-				//~ jQuery(document).ready(function($){
-					//~ $(".subhead-collapse").hide();
-				//~ });';
-//~
-//~
-		//~ $document->addScriptDeclaration($js);
 		$includePaths = array();
-		$basePath = JPATH_LIBRARIES.'/gjfields/layouts/';
-		$includePaths[] = $basePath.JFactory::getApplication()->getTemplate().'/';
+		$basePath = JPATH_LIBRARIES . '/gjfields/layouts/';
+		$includePaths[] = $basePath . JFactory::getApplication()->getTemplate() . '/';
 		$includePaths[] = $basePath;
 		$layout = 'users';
 
-		if (!empty($this->element['simple']) && $this->element['simple']== 'true') {
-			// do nothing
-		} else {
-			$this->element['name'] = $this->element['name'].'[]';
+		if (!empty($this->element['simple']) && $this->element['simple'] == 'true')
+		{
+			// Do nothing
 		}
+		else
+		{
+			$this->element['name'] = $this->element['name'] . '[]';
+		}
+
 		$renderer = $this->getRenderer($layout);
 		$renderer->getDefaultIncludePaths();
-		$renderer->setIncludePaths(array_merge($renderer->getIncludePaths(),$includePaths)) ;
-		$data = array_merge($this->getLayoutData(),array('simple'=>( isset($this->element['simple']) && (string)$this->element['simple'] == 'true'  )? true: false));
-		//$renderer->setIncludePaths((array)JPATH_LIBRARIES) ;
-//~ var_dump($renderer);
-//~ var_dump($this->getLayoutData());
-		return $renderer->render($data,true	);
+		$renderer->setIncludePaths(array_merge($renderer->getIncludePaths(), $includePaths));
+
+		$data = array_merge(
+			$this->getLayoutData(),
+			array('simple' => (isset($this->element['simple']) && (string) $this->element['simple'] == 'true'  )? true: false)
+		);
+
+		return $renderer->render($data, true);
 		/*##mygruz20160509151935 } */
 	}
 
@@ -138,7 +137,7 @@ class JFormFieldUsers extends JFormField
 		It became: */
 		$data = parent::getLayoutData();
 		$extraData = array(
-				//'userName'  => $table->name,
+				// 'userName'  => $table->name,
 				'groups'    => $this->getGroups(),
 				'excluded'  => $this->getExcluded()
 		);
@@ -175,4 +174,17 @@ class JFormFieldUsers extends JFormField
 	{
 		return explode(',', $this->element['exclude']);
 	}
+}
+
+// Preserve compatibility
+if (!class_exists('JFormFieldUsers'))
+{
+	/**
+	 * Old-fashioned field name
+	 *
+	 * @since  1.2.0
+	 */
+				class JFormFieldUsers extends GJFieldsFormFieldUsers
+				{
+				}
 }

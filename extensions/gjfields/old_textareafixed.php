@@ -10,7 +10,7 @@
 defined('JPATH_PLATFORM') or die;
 
 JFormHelper::loadFieldClass('textarea');
-//if (!class_exists('JFormFieldGJFields')) {include ('gjfields.php');}
+//if (!class_exists('GJFieldsFormField')) {include ('gjfields.php');}
 
 
 class JFormFieldTextareafixed extends JFormFieldTextarea	{

@@ -17,8 +17,7 @@ JFormHelper::loadFieldClass('list');
  *
  * @since  11.1
  */
-
-class JFormFieldCategoryext extends JFormFieldCategory
+class GJFieldsFormFieldCategoryext extends JFormFieldCategory
 {
 	/**
 	 * The form field type.
@@ -38,86 +37,116 @@ class JFormFieldCategoryext extends JFormFieldCategory
 	 *
 	 * @since   11.1
 	 */
-	protected function getOptions()
+	public function getOptions($flag = false)
 	{
+		// Due to inheritance the function can be called twice. To avoid we use the $flag parameter and static $options
+		static $options = false;
+
+		if (!$flag)
+		{
+			return $options;
+		}
+
 		$options = array();
 
-		$context_or_contenttype = $this->element['context_or_contenttype'] ? (string) $this->element['context_or_contenttype'] : (string) $this->element['scope'];
-//~ dump ($context_or_contenttype,'$context_or_contenttype');
+		$context_or_contenttype = $this->element['context_or_contenttype']
+			? (string) $this->element['context_or_contenttype'] : (string) $this->element['scope'];
 
 		$extension = $this->element[$context_or_contenttype] ? (string) $this->element[$context_or_contenttype] : (string) $this->element['scope'];
-//~ dump ($extension,'$extension');
-		$extension = explode(PHP_EOL,$extension);
+
+		$extension = explode(PHP_EOL, $extension);
 		$extension = trim($extension[0]);
-//~ dump ($extension,'$extension 2');
-		switch ($context_or_contenttype) {
+
+		switch ($context_or_contenttype)
+		{
 			case 'context':
 				break;
 			case 'content_type':
 			default :
-				$category = JTable::getInstance( 'contenttype' );
-				$category->load( $extension );
-//~ dump ($category,'$category');
+				$category = JTable::getInstance('contenttype');
+				$category->load($extension);
+
 				$extension = $category->type_alias;
 				break;
 		}
-		$extension = explode ('.',$extension);
-		$extension = $extension[0];
-//~ dump ($extension,$this->getAttribute('name').' $extension 2');
 
+		$extension = explode('.', $extension);
+		$extension = $extension[0];
 
 		$published = (string) $this->element['published'];
 
 		// Load the category options for a given extension.
-		if (!empty($extension)) {
-			switch ($extension) {
+		if (!empty($extension))
+		{
+			switch ($extension)
+			{
 				case 'com_k2':
-					try {
+					try
+					{
 						$db = JFactory::getDBO();
 						$query = 'SELECT m.* FROM #__k2_categories m WHERE trash = 0 ORDER BY parent, ordering';
 						$db->setQuery($query);
 						$mitems = $db->loadObjectList();
 						$children = array();
-						if ($mitems) 					{
-							foreach ($mitems as $v)						{
-								 if (K2_JVERSION != '15')
-								 {
-									  $v->title = $v->name;
-									  $v->parent_id = $v->parent;
-								 }
-								 $pt = $v->parent;
-								 $list = @$children[$pt] ? $children[$pt] : array();
-								 array_push($list, $v);
-								 $children[$pt] = $list;
+
+						if ($mitems)
+						{
+							foreach ($mitems as $v)
+							{
+								if (K2_JVERSION != '15')
+								{
+									$v->title = $v->name;
+									$v->parent_id = $v->parent;
+								}
+
+								$pt = $v->parent;
+								$list = @$children[$pt] ? $children[$pt] : array();
+								array_push($list, $v);
+								$children[$pt] = $list;
 							}
 						}
+
 						$list = JHTML::_('menu.treerecurse', 0, '', array(), $children, 9999, 0, 0);
 						$mitems = array();
-						foreach ($list as $item)	{
+
+						foreach ($list as $item)
+						{
 							$item->treename = JString::str_ireplace('&#160;', ' -', $item->treename);
 							$mitems[] = JHTML::_('select.option', $item->id, $item->treename);
 						}
+
 						$options = $mitems;
 					}
-						catch (Exception $e){
-						JFactory::getApplication()->enqueueMessage(JText::sprintf('LIB_GJFIELDS_NOT_INSTALLED',$extension).'<br><pre>'.$e->getMessage().'</pre>', 'error');
+					catch (Exception $e)
+					{
+						JFactory::getApplication()->enqueueMessage(
+							JText::sprintf('LIB_GJFIELDS_NOT_INSTALLED', $extension) . '<br><pre>' . $e->getMessage() . '</pre>',
+							'error'
+						);
 					}
 					break;
 				case 'com_jdownloads':
-					$file = JPATH_ADMINISTRATOR.'/components/'.$extension.'/models/fields/jdcategoryselect.php';
-					if (!file_exists($file)) {
-						JFactory::getApplication()->enqueueMessage(JText::sprintf('LIB_GJFIELDS_NOT_INSTALLED',$extension).'<br>'.JText::_('LIB_GJFIELDS_FILE_NOT_EXISTS').'<pre>'.$file.'</pre>', 'error');
+					$file = JPATH_ADMINISTRATOR . '/components/' . $extension . '/models/fields/jdcategoryselect.php';
+
+					if (!file_exists($file))
+					{
+						JFactory::getApplication()->enqueueMessage(
+							JText::sprintf('LIB_GJFIELDS_NOT_INSTALLED', $extension) . '<br>' . JText::_('LIB_GJFIELDS_FILE_NOT_EXISTS') . '<pre>' . $file . '</pre>',
+							'error'
+						);
 						break;
 					}
+
 					JLoader::register('JFormFieldjdCategorySelect', $file);
 					$formfield = JFormHelper::loadFieldType('jdcategoryselect');
-					$formfield->setup($this->element,'');
+					$formfield->setup($this->element, '');
 					$options = $formfield->getOptions();
 
 					break;
 				default :
-					if (strpos($extension,'com_')!==0) {
-						$extension = 'com_'.$extension;
+					if (strpos($extension, 'com_') !== 0)
+					{
+						$extension = 'com_' . $extension;
 					}
 
 					// Filter over published state or not depending upon if it is present.
@@ -152,7 +181,6 @@ class JFormFieldCategoryext extends JFormFieldCategory
 					break;
 			}
 
-
 			if (isset($this->element['show_root']))
 			{
 				array_unshift($options, JHtml::_('select.option', '0', JText::_('JGLOBAL_ROOT')));
@@ -160,10 +188,15 @@ class JFormFieldCategoryext extends JFormFieldCategory
 		}
 		else
 		{
-			JLog::add('GJFields: '.$this->getAttribute('name').' '. JText::_('JLIB_FORM_ERROR_FIELDS_CATEGORY_ERROR_EXTENSION_EMPTY'), JLog::WARNING, 'jerror');
+			JLog::add(
+				'GJFields: ' . $this->getAttribute('name') . ' ' . JText::_('JLIB_FORM_ERROR_FIELDS_CATEGORY_ERROR_EXTENSION_EMPTY'),
+				JLog::WARNING,
+				'jerror'
+			);
 		}
 
 		// Merge any additional options in the XML definition.
+
 		/*##mygruz20160213194844 {
 		$options = array_merge(parent::getOptions(), $options);
 		It was:
@@ -172,21 +205,48 @@ class JFormFieldCategoryext extends JFormFieldCategory
 
 		return $options;
 	}
-	protected function getInput() {
-		$options = (array) $this->getOptions();
 
-		if (empty($options)) {
+	/**
+	 * HTML output
+	 *
+	 * @return   string
+	 */
+	protected function getInput()
+	{
+		$options = (array) $this->getOptions(true);
+
+		if (empty($options))
+		{
 			$formfield = JFormHelper::loadFieldType('text');
-			$formfield->setup($this->element,'');
-			if (is_array($this->value)) {
-				$formfield->value = implode(',',$this->value);
+			$formfield->setup($this->element, '');
+
+			if (is_array($this->value))
+			{
+				$formfield->value = implode(',', $this->value);
 			}
-			else {
+			else
+			{
 				$formfield->value = $this->value;
 			}
-			$formfield->hint = JText::_((string)$this->hint);
-			return $formfield->getInput().PHP_EOL;
+
+			$formfield->hint = JText::_((string) $this->hint);
+
+			return $formfield->getInput() . PHP_EOL;
 		}
+
 		return parent::getInput();
 	}
+}
+
+// Preserve compatibility
+if (!class_exists('JFormFieldCategoryext'))
+{
+	/**
+	 * Old-fashioned field name
+	 *
+	 * @since  1.2.0
+	 */
+				class JFormFieldCategoryext extends GJFieldsFormFieldCategoryext
+				{
+				}
 }

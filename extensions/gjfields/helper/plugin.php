@@ -11,10 +11,6 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
-require_once dirname(__FILE__) . '/vendor/autoload.php';
-
-use MatthiasMullie\Minify;
-
 /**
  * Short desc
  *
@@ -24,6 +20,8 @@ use MatthiasMullie\Minify;
 class JPluginGJFields extends JPlugin
 {
 	static public $debug;
+
+	static public $vars;
 
 	/**
 	 * Constructor.
@@ -47,12 +45,13 @@ class JPluginGJFields extends JPlugin
 		$this->plg_name = $config['name'];
 		$this->plg_type = $config['type'];
 		$this->plg_full_name = 'plg_' . $config['type'] . '_' . $config['name'];
+		$this->plg_path_relative = '/plugins/' . $this->plg_type . '/' . $this->plg_name . '/';
+		$this->plg_path = JPATH_PLUGINS . '/' . $this->plg_type . '/' . $this->plg_name . '/';
 
 		// Is used for building joomfish links
 		$this->langShortCode = null;
 		$this->default_lang = JComponentHelper::getParams('com_languages')->get('site');
 		$language = JFactory::getLanguage();
-		$this->plg_path = JPATH_PLUGINS . '/' . $this->plg_type . '/' . $this->plg_name . '/';
 
 		$language->load($this->plg_full_name, $this->plg_path, 'en-GB', true);
 		$language->load($this->plg_full_name, $this->plg_path, $this->default_lang, true);
@@ -499,87 +498,87 @@ class JPluginGJFields extends JPlugin
 	}
 
 	/**
-	 * Adds script to DOM with unique hash based on the md5_file
+	 * Adds a JS or CSS file using proper joomla way to let me be overridable
 	 *
-	 * At least for the active development it's useful as makes browser
-	 * ignrore script caching on script file changed.
-	 * TODO Consider to skip this md5_file for production, as md5 is known to be slow
-	 * But production will be developed intensively anyway. So I assum this function should
-	 * stay as is
+	 * Please note, that url passed to the function must be like plg_system_notificationary/ajax.js
+	 * while the file itself must be in a folder like media/plg_system_notificationary/js/ajax.js
 	 *
-	 * @param   string  $url                Locally placed script
-	 * @param   bool    $includeMinified    Wether to include full or minified
-	 * @param   bool    $regenrateMinified  Force minifed file regeneration from full files
+	 * @param   string  $path       JS or CSS file like ajax.js
+	 * @param   string  $extension  Extension name in format like plg_system_notificationary or com_content
+	 *                              to look for the media files in the media folder
+	 * @param   bool    $debug      If to load min or non-min file
 	 *
 	 * @return   void
 	 */
-	public static function _addJSorCSS($url, $includeMinified = true, $regenrateMinified = false)
+	public static function addJSorCSS($path, $extension, $debug = false)
 	{
-		if (static::$debug)
+		$path = $extension . '/' . $path;
+
+		$path_parts = pathinfo($path);
+
+		if (!static::$debug && !$debug)
 		{
-			$regenrateMinified = true;
-			$includeMinified = false;
-		}
+			// Add .min to the file name
+			$path = explode('.', $path);
+			$ext = array_pop($path);
+			$path[] = 'min';
+			$path[] = $ext;
+			$path = implode('.', $path);
 
-		// Get file path
-		$file_path = JPATH_ROOT . '/' . $url;
+			switch ($path_parts['extension'])
+			{
+				case 'css':
+					JHtml::stylesheet($path, false, true, false);
+					break;
+				case 'js':
+					JHtml::script($path, false, true);
+					break;
+				default :
 
-		// Just in case the web-site is not in the root of the domain name, like localhost/noble/index.php
-		$uribase = JUri::base(true);
+					break;
+			}
 
-		if (!empty($uribase))
-		{
-			$file_path = JPath::clean(str_replace(JPATH_ROOT . '/' . JUri::base(true), JPATH_ROOT . '/', $file_path));
-			$url = JPath::clean(JUri::root(true) . '/' . $url);
-		}
-
-		// If the file is a local one, then add it's md5_file hash to the link
-		if (!JFile::exists($file_path))
-		{
 			return;
 		}
 
-		$file_path = JPath::clean($file_path);
-		$type = JFile::getExt($file_path);
-
-		if ($regenrateMinified || $includeMinified)
+		if (!$extension && isset(static::$vars['plg_path_relative']))
 		{
-			$file_path_mnified = dirname($file_path) . '/' . basename($file_path, '.' . $type) . '.min.' . $type;
-			$file_path_mnified = JPath::clean($file_path_mnified);
-
-			$url_minified = dirname($url) . '/' . basename($url, '.' . $type) . '.min.' . $type;
-			$url_minified = JPath::clean($url_minified);
-		}
-
-		if ($regenrateMinified || ($includeMinified && !JFile::exists($file_path_mnified) ))
-		{
-			$sourcePath = $file_path;
-			$minifier = new Minify\JS($sourcePath);
-
-			// Save minified file to disk
-			$minifiedPath = $file_path_mnified;
-			$minifier->minify($minifiedPath);
-		}
-
-		if ($includeMinified)
-		{
-			$url = $url_minified;
-			// $file_path = md5_file($file_path);
+			$path = static::$vars['plg_path_relative'];
 		}
 		else
 		{
-			// $file_path = md5_file($file_path);
+			$extension = explode('_', $extension);
+
+			switch ($extension[0])
+			{
+				case 'plg':
+					$path = '/plugins/' . $extension[1] . '/' . $extension[2];
+					break;
+				case 'lib':
+					$path = '/libraries/' . $extension[1];
+					break;
+				default :
+					break;
+			}
+
+			$path .= '/';
+
 		}
+
+		$path .= $path_parts['extension'] . '/' . $path_parts['basename'];
 
 		$doc = JFactory::getDocument();
+		$hash = md5_file(JPATH_ROOT . $path);
+		$path .= '?h=' . $hash;
 
-		if ($type == 'js')
+		switch ($path_parts['extension'])
 		{
-			$doc->addScriptVersion($url);
-		}
-		else
-		{
-			$doc->addStyleSheet($url);
+			case 'css':
+				$doc->addStyleSheet($path);
+				break;
+			case 'js':
+				$doc->addScriptVersion($path);
+				break;
 		}
 	}
 
