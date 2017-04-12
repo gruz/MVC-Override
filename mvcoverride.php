@@ -37,7 +37,8 @@ else
 	 */
 	class PlgSystemMVCOverride extends JPluginGJFields
 				{
-		public $regexp = 'class +[a-z0-9]* *(extends|{|\n)';
+		// ~ public $regexp = 'class +[a-z0-9]* *(extends|{|\n)';
+		public $regexp = '/class +[a-z0-9]* *(extends|{|\n)/i';
 		/**
 		 * Constructor
 		 *
