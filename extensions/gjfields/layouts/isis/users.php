@@ -109,7 +109,14 @@ JPluginGJFields::addJSorCSS('fieldusers.js', 'lib_gjfields', $debug = false);
 			foreach ($value as $k=>$v) {
 				if (empty($v)) {continue; }
 				$user = JFactory::getUser($v);
-				echo '<option  selected="selected" value="'.$v.'" >'.$user->username.'</option>';
+				if ($user->guest)
+				{
+					echo '<option  selected="selected" value="'.$v.'" >' . JText::_('JLIB_HTML_BATCH_USER_NOUSER') . ' ID: ' . $v . '</option>';
+				}
+				else
+				{
+					echo '<option  selected="selected" value="'.$v.'" >'.$user->username.'</option>';
+				}
 			}
 
 			?>

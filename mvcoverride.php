@@ -79,6 +79,20 @@ else
 		 */
 		public function onAfterInitialise()
 		{
+			/**Define virtuemart constant (Added By florian.taupier@network.fr on 17 january 2018*/
+			if ($this->params->get('vmCompatibility',0)) {
+				if (!defined ('DS')) {
+					define('DS','/');
+				}
+				if (!defined ('VMPATH_ADMIN')) {
+					define('VMPATH_ADMIN',JPATH_ADMINISTRATOR  . DS . 'components'  . DS . 'com_virtuemart');
+				}
+				if (!defined ('VMPATH_SITE')) {
+					define('VMPATH_SITE',JPATH_SITE  . DS . 'components'  . DS . 'com_virtuemart');
+				}
+			}
+			/********End Virtuemart compatibility load*******/
+
 			$jinput = JFactory::getApplication()->input;
 
 			if ($jinput->get('option', null) == 'com_dump')
@@ -326,7 +340,7 @@ else
 
 			if ($override['className'] != '')
 			{
-				$rx = '/class *' . $override['className'] . ' *(extends|{|\n)/i';
+				$rx = '/class *' . $override['className'] . ' *(extends|{|\n)/';
 			}
 
 			preg_match($rx, $buffer, $classes);
@@ -391,7 +405,9 @@ else
 				// And load our overrider class which is now a subclass of the base class
 				if ($override['textorfields'] == 1)
 				{
-					JLoader::register($name[1], $override['overridePath'], true);
+					// ~ dumpMessage('Class name = ' . $name[1] . '| file exists = ' . file_exists($override['overridePath']));
+					// ~ JLoader::register($name[1], $override['overridePath'], true);
+					require $override['overridePath'];
 				}
 				else
 				{
@@ -440,13 +456,20 @@ else
 							file_put_contents($originalFilePath, '');
 							require $originalFilePath;
 							JFile::move($originalFilePath . 'orig.php', $originalFilePath);
-							unlink($lck_file);
+
+							// ~ unlink($lck_file);
 
 							// Release the lock
 							flock($fp, LOCK_UN);
+							fclose($fp);
+							$fp = null;
+							unlink($lck_file);
 					}
 
-					fclose($fp);
+					if ($fp !== null)
+					{
+						fclose($fp);
+					}
 				}
 			}
 		}
@@ -597,7 +620,12 @@ else
 				if (strpos($originalFilePath, '/controllers/') !== false )
 				{
 					$temp = explode('/controllers/', $originalFilePath);
-					require_once $temp[0] . '/controller.php';
+					$temp = $temp[0] . '/controller.php';
+
+					if (file_exists($temp))
+					{
+						require_once $temp;
+					}
 				}
 
 				// Detect if source file use some constants
@@ -620,9 +648,9 @@ else
 
 				$parts = explode(' ', $classes[0]);
 
-				$originalClass = $parts[1];
+				$originalClass = 'class ' . trim($parts[1]) . ' ';
 
-				$replaceClass = trim($originalClass) . 'Default';
+				$replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . ' ';
 
 				/*
 				if (count($definesSourceOverride[0]) && false)
@@ -678,13 +706,17 @@ else
 						JFile::move($originalFilePath . '.orig.php', $originalFilePath);
 
 						// It's possible to delete during a LOCK_EX mode!
-						unlink($lck_file);
-
-						// Release the lock
-						flock($fp, LOCK_UN);
+							// Release the lock
+							flock($fp, LOCK_UN);
+							fclose($fp);
+							$fp = null;
+							unlink($lck_file);
 					}
 
-					fclose($fp);
+					if ($fp !== null)
+					{
+						fclose($fp);
+					}
 				}
 			}
 		}
