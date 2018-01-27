@@ -648,9 +648,36 @@ else
 
 				$parts = explode(' ', $classes[0]);
 
-				$originalClass = 'class ' . trim($parts[1]) . ' ';
+				// $originalClass = 'class ' . trim($parts[1]) . ' ';
 
-				$replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . ' ';
+				// $replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . ' ';
+
+				// 
+
+				/**
+				 * A fix by Fexli <mailer@app.tempr.email>
+				 * 
+				 * 2018-01-27 05:50:09
+				 * 
+				 * Even though it is usually doing its job pretty well i had some trouble 
+				 * overriding some classes with MCV Override. This was caused by the class name replacement: 
+				 * You always append a blank character to the string you want to replace. 
+				 * In case the class name is followed by a line break, the whole replacement fails:
+				 * 		class foo
+				 * 		{
+				 * 			...
+				 * So it was
+				 * 	 	$originalClass = 'class ' . trim($parts[1]) . ' ';
+				 * 		$replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . ' ';
+				 * 		$bufferContent = str_replace($originalClass, $replaceClass, $bufferFile);
+				 */
+				
+
+				// Original class name is always followed by at least one whitespace character (new line, blank, ...)
+				$originalClass = '/class ' . trim($parts[1]) . '([\s]+\{)/'; 
+
+				// Append whitespace after new class name
+				$replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . '$1'; 
 
 				/*
 				if (count($definesSourceOverride[0]) && false)
@@ -668,7 +695,10 @@ else
 				*/
 
 				// Replace original class name by default
-				$bufferContent = str_replace($originalClass, $replaceClass, $bufferFile);
+				// $bufferContent = str_replace($originalClass, $replaceClass, $bufferFile);
+				
+				// Use preg_replace instead of str_replace
+				$bufferContent = preg_replace($originalClass, $replaceClass, $bufferFile); 
 
 				// Replace JPATH_COMPONENT constants if found, because we are loading before define these constants
 				if (count($definesSource[0]))
