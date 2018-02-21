@@ -68,6 +68,7 @@ class KunenaController extends KunenaControllerDefault
 			It was:
 			require_once $path;
 			It became: */
+dump('KunenaController' . ucfirst($view), $path);
 			JLoader::register('KunenaController' . ucfirst($view), $path);
 			/* ##mygruz20170819000208 } */
 		}
