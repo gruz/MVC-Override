@@ -16,11 +16,11 @@ if (!class_exists('ScriptAry'))
 class plgsystemmvcoverrideInstallerScript extends ScriptAry {
 
 	/**
-	 * method to run after an install/update/uninstall method
+	 * Method to run after an install/update/uninstall method
 	 *
 	 * @return void
 	 */
-	function postflight($type, $parent) {
+	public function postflight($type, $parent, $publishPlugin = true) {
 		$manifest = $parent->getParent()->getManifest();
 
 		if ($type == 'install') {
@@ -73,7 +73,7 @@ class plgsystemmvcoverrideInstallerScript extends ScriptAry {
 			}
 		}
 
-		parent::postflight($type, $parent);
+		parent::postflight($type, $parent, $publishPlugin);
 	}
 }
 ?>
