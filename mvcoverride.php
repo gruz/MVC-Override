@@ -267,18 +267,6 @@ else
 		 */
 		private function _override($override)
 		{
-
-			if ($this->paramGet('bruteMode') == 1 )
-			{
-				$originalFilePath = $override['basePath'];
-				$reserveFilePath = $originalFilePath . 'orig.php';
-				
-				if (is_file($reserveFilePath) && !filesize($originalFilePath))
-				{
-					JFile::move($reserveFilePath, $originalFilePath);
-				}
-			}
-			
 			if ($override['ruleEnabled'] != 1)
 			{
 				return;
@@ -455,42 +443,7 @@ else
 						require $override['overridePath'];
 					}
 
-					$originalFilePath = $override['basePath'];
-					$reserveFilePath = $originalFilePath . 'orig.php';
-
-					$lck_file = JFactory::getApplication()->get('tmp_path') . "/mvcoverride-" . sha1_file($originalFilePath) . ".lck";
-
-					$fp = fopen($lck_file, "w");
-
-					// Acquire an exclusive lock
-					if (flock($fp, LOCK_EX))
-					{
-						if (!is_file($reserveFilePath) || !filesize($reserveFilePath)) 
-						{
-							JFile::move($originalFilePath, $reserveFilePath);
-						}
-						file_put_contents($originalFilePath, '');
-						require $originalFilePath;
-						JFile::move($reserveFilePath, $originalFilePath);
-
-						// ~ unlink($lck_file);
-
-						// Release the lock
-						flock($fp, LOCK_UN);
-						fclose($fp);
-						$fp = null;
-						unlink($lck_file);
-					}
-
-					if ($fp !== null)
-					{
-						fclose($fp);
-					}
-					
-					if (!filesize($originalFilePath) && is_file($reserveFilePath))
-					{
-						JFile::move($reserveFilePath, $originalFilePath);
-					}
+					$this->handleBruteForce($override['basePath']);
 				}
 			}
 		}
@@ -743,34 +696,59 @@ else
 
 				require $overriderFilePath;
 
-				if ($this->paramGet('bruteMode') == 1 )
-				{
-					$lck_file = JFactory::getApplication()->get('tmp_path') . "/mvcoverride-" . sha1_file($originalFilePath) . ".lck";
-					$fp = fopen($lck_file, "w");
+				$this->handleBruteForce($originalFilePath);
 
-					// Acquire an exclusive lock. If we can't get the lock now, PHP will block until the lock becomes available to us
-					if (flock($fp, LOCK_EX))
-					{
-						JFile::move($originalFilePath, $originalFilePath . '.orig.php');
-						file_put_contents($originalFilePath, '');
-						require $originalFilePath;
-						JFile::move($originalFilePath . '.orig.php', $originalFilePath);
-
-						// It's possible to delete during a LOCK_EX mode!
-							// Release the lock
-							flock($fp, LOCK_UN);
-							fclose($fp);
-							$fp = null;
-							unlink($lck_file);
-					}
-
-					if ($fp !== null)
-					{
-						fclose($fp);
-					}
-				}
 			}
 		}
+
+		public function handleBruteForce($originalFilePath)
+		{
+			if (!$this->paramGet('bruteMode') )
+			{
+				return;
+			}
+
+			$reserveFilePath = $originalFilePath . 'orig.php';
+
+			$restoreOriginalFile = function() use ($reserveFilePath, $originalFilePath) {
+				if (is_file($reserveFilePath) && !filesize($originalFilePath))
+				{
+					JFile::move($reserveFilePath, $originalFilePath);
+				}
+			};
+
+			//$restoreOriginalFile();
+
+			$lck_file = JFactory::getApplication()->get('tmp_path') . "/mvcoverride-" . sha1_file($originalFilePath) . ".lck";
+
+			$fp = fopen($lck_file, "w");
+
+			// Acquire an exclusive lock
+			if (flock($fp, LOCK_EX))
+			{
+				if (!is_file($reserveFilePath) || !filesize($reserveFilePath)) 
+				{
+					JFile::move($originalFilePath, $reserveFilePath);
+				}
+				file_put_contents($originalFilePath, '');
+				require $originalFilePath;
+				JFile::move($reserveFilePath, $originalFilePath);
+
+				// Release the lock
+				flock($fp, LOCK_UN);
+				fclose($fp);
+				$fp = null;
+				unlink($lck_file);
+			}
+
+			if ($fp !== null)
+			{
+				fclose($fp);
+			}
+			
+			//$restoreOriginalFile();
+		}
+
 
 		/**
 		 * Gets class name from a file using regexp
