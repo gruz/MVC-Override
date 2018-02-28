@@ -27,7 +27,6 @@ class KunenaControllerUser extends KunenaControllerUserDefault
 	 */
 	protected function saveUser()
 	{
-file_put_contents('a.txt', 'user saved');
 		// We only allow users to edit few fields
 		/* ##mygruz20170819003658 {
 		It was:
