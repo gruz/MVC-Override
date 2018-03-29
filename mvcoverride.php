@@ -1073,7 +1073,7 @@ else
 			$bufferOverrideFile = file_get_contents($filePath);
 
 			// Detect if override file use some constants
-			preg_match_all('/JPATH_COMPONENT(_SITE|_ADMINISTRATOR)|JPATH_COMPONENT/i', $filePath, $definesSourceOverride);
+			preg_match_all('/JPATH_COMPONENT(_SITE|_ADMINISTRATOR)|JPATH_COMPONENT/i', $bufferOverrideFile, $definesSourceOverride);
 
 			if (count($definesSourceOverride[0]))
 			{
