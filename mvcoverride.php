@@ -648,7 +648,14 @@ else
 				
 
 				// Original class name is always followed by at least one whitespace character (new line, blank, ...)
+				
+				/** ##mygruz20180504031330 {
+				 * Athos Pieri <chakkos@yahoo.com> proposed to use the new pattern
+				It was:
 				$originalClass = '/class ' . trim($parts[1]) . '([\s]+\{)/'; 
+				It became: */
+				$originalClass = '/class ' . trim($parts[1]) . '([ |\n])/';
+				/** ##mygruz20180504031330 } */
 
 				// Append whitespace after new class name
 				$replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . '$1'; 

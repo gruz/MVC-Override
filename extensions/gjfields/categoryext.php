@@ -125,7 +125,58 @@ class GJFieldsFormFieldCategoryext extends JFormFieldCategory
 						);
 					}
 					break;
+				case 'com_phocadownload':
+				case 'com_phocagallery':
+
+					switch ($extension) {
+						case 'com_phocadownload':
+							$tblName = '#__phocadownload_categories';
+							if (! class_exists('\PhocaDownloadCategory'))
+							{
+								
+								require JPATH_ADMINISTRATOR . '/components/com_phocadownload/libraries/phocadownload/category/category.php';
+							}
+							break;						
+						case 'com_phocagallery':
+							$tblName = '#__phocagallery_categories';
+							if (! class_exists('\PhocaGalleryCategory'))
+							{
+								require JPATH_ADMINISTRATOR . '/components/com_phocagallery/libraries/phocagallery/html/category.php';
+								
+							}
+							break;
+					}
+
+					$db = \JFactory::getDBO();
+
+					// Build the list of categories
+					$query = 'SELECT a.title AS text, a.id AS value, a.parent_id as parentid'
+					. ' FROM ' . $tblName . '  AS a'
+					. ' WHERE a.published = 1'
+					. ' ORDER BY a.ordering';
+					$db->setQuery($query);
+					$data = $db->loadObjectList();
+
+					$catId	= -1;
+
+					$tree = array();
+					$text = '';
+
+					switch ($extension) {
+						case 'com_phocadownload':
+							$tree = \PhocaDownloadCategory::CategoryTreeOption($data, $tree, 0, $text, $catId);
+							break;						
+						case 'com_phocagallery':
+							$tree = \PhocaGalleryCategory::CategoryTreeOption($data, $tree, 0, $text, $catId);
+							break;
+					}
+
+					$options = $tree;
+
+					break;
+
 				case 'com_jdownloads':
+
 					$file = JPATH_ADMINISTRATOR . '/components/' . $extension . '/models/fields/jdcategoryselect.php';
 
 					if (!file_exists($file))
