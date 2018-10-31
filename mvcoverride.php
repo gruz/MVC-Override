@@ -366,7 +366,13 @@ else
 
 					foreach ($includes as $include)
 					{
-						$include = JPATH_BASE . '/' . $include;
+						//Change inclusion method for troubles in virtuemart. Needed for overriding models who need to be load in front and admin
+						if (!file_exists(JPATH_BASE . '/' . trim($include))) {
+							$include = JPATH_ROOT . '/' . trim($include);
+						}
+						else {
+							$include = JPATH_BASE . '/' . trim($include) ;
+						}
 
 						if ($override['includes'] != '' && file_exists($include))
 						{
