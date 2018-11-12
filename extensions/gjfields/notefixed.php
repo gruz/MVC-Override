@@ -34,7 +34,7 @@ class GJFieldsFormFieldNoteFixed extends JFormField
 	 *
 	 * @since   11.1
 	 */
-	protected function getLabel()
+	public function getLabel()
 	{
 		if (empty($this->element['label']) && empty($this->element['description']))
 		{
@@ -81,7 +81,7 @@ class GJFieldsFormFieldNoteFixed extends JFormField
 	 *
 	 * @since   11.1
 	 */
-	protected function getInput()
+	public function getInput()
 	{
 		return '';
 	}

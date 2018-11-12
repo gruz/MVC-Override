@@ -911,9 +911,23 @@ else
 
 			$includePaths = $this->_getIncludePaths();
 
-			list($component, $formName) = explode('.', $form->getName());
+			$tmp = explode('.', $form->getName());
 
-			$fileNamesToInclude = array($formName);
+			$component = array_shift($tmp);
+
+			$fileNamesToInclude = [];
+
+			$i = 0;
+
+			foreach ($tmp as $key => $value) {
+				if ( 0 === $i ) {
+					$fileNamesToInclude[] = $value; 
+				} else {
+					$fileNamesToInclude[] = $value . '_' . $fileNamesToInclude[$i -1]; 
+				}
+
+				$i++;
+			}
 
 			switch ($form->getName())
 			{
@@ -940,32 +954,6 @@ else
 					}
 				}
 			}
-
-			/* Old stupid approcah. Shame on me.
-			if (!empty($form_paths) && false)
-			{
-				There is no other way to override a form except removing all core form fields
-				and loading override form next.
-
-				It is not possible on some reason to do something like this
-
-				$form = new JForm($form_path);
-				$form->loadFile($form_path, false);
-
-				It would still update, but not replace the from.
-
-				foreach ($form->getFieldsets() as $fieldset)
-				{
-					$fields = $form->getFieldset($fieldset->name);
-
-					foreach ($fields as $field)
-					{
-						$fieldName = $field->getAttribute('name');
-						$res = $form->removeField($fieldName,  $field->group);
-					}
-				}
-			}
-			*/
 
 			if (!empty($form_paths))
 			{
