@@ -36,7 +36,7 @@ else
 	 * @since   0.0.1
 	 */
 	class PlgSystemMVCOverride extends JPluginGJFields
-				{
+	{
 		// ~ public $regexp = 'class +[a-z0-9]* *(extends|{|\n)';
 		public $regexp = '/class +[a-z0-9]* *(extends|{|\n)/i';
 		/**
@@ -474,13 +474,20 @@ else
 			$includePath = $this->_getIncludePaths();
 
 			$files_to_override = array();
+			$originalInAdministrator = [];
 
 			foreach ($includePath as $k => $codefolder)
 			{
 				if (JFolder::exists($codefolder))
 				{
+
 					$files = str_replace($codefolder, '', JFolder::files($codefolder, '.php', true, true));
+					if (strpos($codefolder, JPATH_ADMINISTRATOR) === 0) {
+						$originalInAdministrator = array_merge($originalInAdministrator, array_fill_keys($files, $codefolder));
+					}
 					$files = array_fill_keys($files, $codefolder);
+
+
 					$files_to_override = array_merge($files_to_override, $files);
 				}
 			}
@@ -516,48 +523,52 @@ else
 				return;
 			}
 			// Check scope condition
-			$scope = '';
+			// $scope = '';
 
-			if (JFactory::getApplication()->isAdmin())
-			{
-				$scope = 'administrator';
-			}
+			// if (JFactory::getApplication()->isAdmin())
+			// {
+			// 	$scope = 'administrator';
+			// }
 
 			// Do not override wrong scope for components
-			foreach ($files_to_override as $fileToOverride => $overriderFolder)
-			{
-				if (JFactory::getApplication()->isAdmin())
-				{
-					if (strpos($fileToOverride, '/com_') === 0)
-					{
-						unset($files_to_override[$fileToOverride]);
-					}
+			// foreach ($files_to_override as $fileToOverride => $overriderFolder)
+			// {
+			// 	if (JFactory::getApplication()->isAdmin())
+			// 	{
+			// 		if (strpos($fileToOverride, '/com_') === 0)
+			// 		{
+			// 			unset($files_to_override[$fileToOverride]);
+			// 		}
 
-					if (strpos($fileToOverride, '/components/com_') === 0)
-					{
-						unset($files_to_override[$fileToOverride]);
-					}
-				}
-				else
-				{
-					if (strpos($fileToOverride, '/administrator/com_') === 0)
-					{
-						unset($files_to_override[$fileToOverride]);
-					}
+			// 		if (strpos($fileToOverride, '/components/com_') === 0)
+			// 		{
+			// 			unset($files_to_override[$fileToOverride]);
+			// 		}
+			// 	}
+			// 	else
+			// 	{
+			// 		if (strpos($fileToOverride, '/administrator/com_') === 0)
+			// 		{
+			// 			unset($files_to_override[$fileToOverride]);
+			// 		}
 
-					if (strpos($fileToOverride, '/administrator/components/com_') === 0)
-					{
-						unset($files_to_override[$fileToOverride]);
-					}
-				}
-			}
+			// 		if (strpos($fileToOverride, '/administrator/components/com_') === 0)
+			// 		{
+			// 			unset($files_to_override[$fileToOverride]);
+			// 		}
+			// 	}
+			// }
 
 			// Loading override files
 			foreach ($files_to_override as $fileToOverride => $overriderFolder)
 			{
-				if (JFile::exists(JPATH_ROOT . $fileToOverride))
+				$scope = '';
+				if (array_key_exists($fileToOverride, $originalInAdministrator)) {
+					$scope = '/administrator';
+				}
+				if (JFile::exists(JPATH_ROOT . $scope . $fileToOverride))
 				{
-					$originalFilePath = JPATH_ROOT . $fileToOverride;
+					$originalFilePath = JPATH_ROOT . $scope . $fileToOverride;
 				}
 				elseif (strpos($fileToOverride, '/com_') === 0 && JFile::exists(JPATH_ROOT . '/components' . $fileToOverride))
 				{
@@ -596,6 +607,13 @@ else
 
 				// Include the original code and replace class name add a Default on
 				$bufferFile = file_get_contents($originalFilePath);
+
+				if ( strpos($originalFilePath,'/com_virtuemart/') !== false ) {
+					JLoader::register('vmDefines', JPATH_ADMINISTRATOR .'/components/com_virtuemart/helpers/vmdefines.php');
+					// JLoader::register('vObject', JPATH_ADMINISTRATOR .'/components/com_virtuemart/helpers/vobject.php');
+					vmDefines::defines();
+					vmDefines::core(JPATH_ROOT);
+				}
 
 				if (strpos($originalFilePath, '/controllers/') !== false )
 				{
@@ -705,6 +723,7 @@ else
 
 				// Finally we can load the base class
 				$bufferContent = $this->_trimEndClodingTag($bufferContent);
+
 				eval('?>' . $bufferContent . PHP_EOL . '?>');
 
 				require $overriderFilePath;
