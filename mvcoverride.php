@@ -476,18 +476,20 @@ else
 			$files_to_override = array();
 			$originalInAdministrator = [];
 
+			$pathObject = new PathWrapper; 
 			foreach ($includePath as $k => $codefolder)
 			{
+				$codefolder = $pathObject->clean($codefolder); 
+
 				if (JFolder::exists($codefolder))
 				{
-
 					$files = str_replace($codefolder, '', JFolder::files($codefolder, '.php', true, true));
+
 					if (strpos($codefolder, JPATH_ADMINISTRATOR) === 0) {
 						$originalInAdministrator = array_merge($originalInAdministrator, array_fill_keys($files, $codefolder));
 					}
+
 					$files = array_fill_keys($files, $codefolder);
-
-
 					$files_to_override = array_merge($files_to_override, $files);
 				}
 			}
