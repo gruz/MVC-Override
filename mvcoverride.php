@@ -12,6 +12,8 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
+use Joomla\CMS\Filesystem\Wrapper;
+
 // Do this because some extensions still use DS, i.e. com_adsmanager
 if (!defined('DS'))
 {
