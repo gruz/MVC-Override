@@ -2,12 +2,12 @@
 <extension version="2.5" type="plugin" group="system" method="upgrade">
   <name>PLG_SYSTEM_MVCOVERRIDE</name>
   <author>Gruz</author>
-  <creationDate>2020-05-26</creationDate>
+  <creationDate>2020-07-09</creationDate>
   <copyright>Copyright (C) 2004-2020 Gruz All rights reserved.</copyright>
   <license>http://www.gnu.org/licenses/gpl-2.0.html GNU/GPL</license>
   <authorEmail>arygroup@gmail.com</authorEmail>
   <authorUrl>http://gruz.ml/en/extensions/joomla-mvc-override.html</authorUrl>
-  <version>1.1.30</version>
+  <version>1.1.31</version>
   <description>PLG_SYSTEM_MVCOVERRIDE_DESC</description>
   <files>
 
@@ -16,7 +16,7 @@
 
 
 
-  <folder>code</folder><folder>extensions</folder><folder>language</folder><filename>README.md</filename><filename>index.html</filename><filename plugin="mvcoverride">mvcoverride.php</filename><filename>scriptary.php</filename><filename>scriptfile.php</filename></files>
+  <folder>code</folder><folder>extensions</folder><folder>language</folder><filename>README.md</filename><filename>index.html</filename><filename plugin="mvcoverride">mvcoverride.php</filename><filename>mvcoverride_24APR2019.php</filename><filename>scriptary.php</filename><filename>scriptfile.php</filename></files>
 
   <config>
     <fields name="params" addfieldpath="/libraries/gjfields">
