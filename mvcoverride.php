@@ -12,7 +12,13 @@
 // No direct access
 defined('_JEXEC') or die('Restricted access');
 
-use Joomla\CMS\Filesystem\Wrapper\PathWrapper;
+use Joomla\CMS\Factory;
+use Joomla\CMS\Log\Log;
+use Joomla\CMS\Language\Text;
+use Joomla\CMS\Filesystem\File;
+use Joomla\CMS\Filesystem\Path;
+use Joomla\String\StringHelper;
+use Joomla\CMS\Filesystem\Folder;
 
 // Do this because some extensions still use DS, i.e. com_adsmanager
 if (!defined('DS'))
@@ -25,7 +31,7 @@ jimport('gjfields.helper.plugin');
 
 if (!class_exists('JPluginGJFields'))
 {
-	JFactory::getApplication()->enqueueMessage('Strange, but missing GJFields library for <span style="color:black;">'
+	Factory::getApplication()->enqueueMessage('Strange, but missing GJFields library for <span style="color:black;">'
 		. __FILE__ . '</span><br> The library should be installed together with the extension... Anyway, reinstall it: '
 		. '<a href="http://www.gruz.org.ua/en/extensions/gjfields-sefl-reproducing-joomla-jform-fields.html">GJFields</a>', 'error');
 }
@@ -55,17 +61,17 @@ else
 
 			if (!empty($this->plg_name))
 			{
-				JLog::addLogger(
+				Log::addLogger(
 					array(
 						'text_file' => 'log.' . $this->plg_name . '.php',
 						'text_entry_format' => '{DATETIME}	{PRIORITY} {CLIENTIP}		{CATEGORY}	{MESSAGE}',
 					),
-					JLog::ALL,
+					Log::ALL,
 					$this->plg_name
 				);
 			}
 
-			if (JFactory::getApplication()->input->get('option', null) == 'com_dump')
+			if (Factory::getApplication()->input->get('option', null) == 'com_dump')
 			{
 				return;
 			}
@@ -95,14 +101,14 @@ else
 			}
 			/********End Virtuemart compatibility load*******/
 
-			$jinput = JFactory::getApplication()->input;
+			$jinput = Factory::getApplication()->input;
 
 			if ($jinput->get('option', null) == 'com_dump')
 			{
 				return;
 			}
 
-			$app = JFactory::getApplication();
+			$app = Factory::getApplication();
 
 			// ~ $router = $app->getRouter();
 			// ~ $uri     = clone JUri::getInstance();
@@ -164,11 +170,11 @@ else
 			foreach ($text as $key => $line)
 			{
 				$line = explode(':|:', $line);
-				$line[0] = JString::trim($line[0]);
+				$line[0] = StringHelper::trim($line[0]);
 
 				if (isset($line[1]))
 				{
-					$line[1] = JString::trim($line[1]);
+					$line[1] = StringHelper::trim($line[1]);
 				}
 
 				if (in_array($line[0], $varNames) && isset($line[1]))
@@ -218,7 +224,7 @@ else
 
 			if (!file_exists($override['basePath']))
 			{
-				$this->message(JText::_('JERROR_LOADFILE_FAILED') . ' <i>' . $override['basePath'] . '</i> ', 'error');
+				$this->message(Text::_('JERROR_LOADFILE_FAILED') . ' <i>' . $override['basePath'] . '</i> ', 'error');
 
 				return false;
 			}
@@ -246,7 +252,7 @@ else
 
 				if (!file_exists($override['overridePath']))
 				{
-					$this->message(JText::_('JERROR_LOADFILE_FAILED') . ' <i>' . $override['overridePath'] . '</i> ', 'error');
+					$this->message(Text::_('JERROR_LOADFILE_FAILED') . ' <i>' . $override['overridePath'] . '</i> ', 'error');
 
 					return false;
 				}
@@ -285,12 +291,12 @@ else
 			}
 
 			// Check override component condition. If a component was specified, check that it matches the current component.
-			$jinput = JFactory::getApplication()->input;
+			$jinput = Factory::getApplication()->input;
 
 			// ~ $option = $this->getOption();
 			if (class_exists($override['className'], false))
 			{
-				$this->message(JText::_('PLG_SYSTEM_MVCOVERRIDE_CLASS_IS_ALREADY_DECLARED') . ': ' . $override['className'], 'notice');
+				$this->message(Text::_('PLG_SYSTEM_MVCOVERRIDE_CLASS_IS_ALREADY_DECLARED') . ': ' . $override['className'], 'notice');
 
 				return;
 			}
@@ -311,9 +317,9 @@ else
 			$this->_replaceWrongConstants($override['overridePath'], $uniqid);
 
 			// Check scope condition
-			$app = JFactory::getApplication();
+			$app = Factory::getApplication();
 
-			if (($override['scope'] == 'admin' && !$app->isAdmin()) || ($override['scope'] == 'site' && $app->isAdmin()))
+			if (($override['scope'] == 'admin' && !$app->isClient('administrator')) || ($override['scope'] == 'site' && $app->isClient('administrator')))
 			{
 				return;
 			}
@@ -364,7 +370,11 @@ else
 				if (!class_exists($name[1] . 'Default', false))
 				{
 					// Include additional supporting files
-					$includes = explode(PHP_EOL, $override['includes']);
+					if (!empty($override['includes'])) {
+						$includes = explode(PHP_EOL, $override['includes']);
+					} else {
+						$includes = [];
+					}
 
 					foreach ($includes as $include)
 					{
@@ -396,7 +406,8 @@ else
 					$base = str_replace($name[1], $name[1] . 'Default', $classes[0]);
 
 					// Now we replace the class declaration phrase in the buffer
-					$buffer = preg_replace($rx, $base, $buffer);
+					// $buffer = preg_replace($rx, $base, $buffer);
+					$buffer = str_replace($classes[0], $base, $buffer);
 
 					// Change private methods to protected methods
 					if ($override['changePrivate'])
@@ -436,7 +447,7 @@ else
 					if ($check === false)
 					{
 						$this->message(
-							JText::_('PLG_SYSTEM_MVCOVERRIDE_EVAL_FAILED')
+							Text::_('PLG_SYSTEM_MVCOVERRIDE_EVAL_FAILED')
 								. '<br/>' . $output . '<pre style="text-align:left;">'
 								. htmlentities($override['code']) . '</pre>',
 							'error'
@@ -463,7 +474,7 @@ else
 		 */
 		private function _autoOverride()
 		{
-			if (JFactory::getApplication()->input->get('option', null) == 'com_dump')
+			if (Factory::getApplication()->input->get('option', null) == 'com_dump')
 			{
 				return;
 			}
@@ -471,21 +482,21 @@ else
 			// ~ $option = $this->getOption();
 
 			// Application name
-			// $applicationName = JFactory::getApplication()->getName();
+			// $applicationName = Factory::getApplication()->getName();
 
 			$includePath = $this->_getIncludePaths();
 
 			$files_to_override = array();
 			$originalInAdministrator = [];
 
-			$pathObject = new PathWrapper; 
+			$pathObject = new Path;
 			foreach ($includePath as $k => $codefolder)
 			{
-				$codefolder = $pathObject->clean($codefolder); 
+				$codefolder = $pathObject->clean($codefolder);
 
-				if (JFolder::exists($codefolder))
+				if (Folder::exists($codefolder))
 				{
-					$files = str_replace($codefolder, '', JFolder::files($codefolder, '.php', true, true));
+					$files = str_replace($codefolder, '', Folder::files($codefolder, '.php', true, true));
 
 					if (strpos($codefolder, JPATH_ADMINISTRATOR) === 0) {
 						$originalInAdministrator = array_merge($originalInAdministrator, array_fill_keys($files, $codefolder));
@@ -529,7 +540,7 @@ else
 			// Check scope condition
 			// $scope = '';
 
-			// if (JFactory::getApplication()->isAdmin())
+			// if (Factory::getApplication()->isClient('administrator'))
 			// {
 			// 	$scope = 'administrator';
 			// }
@@ -537,7 +548,7 @@ else
 			// Do not override wrong scope for components
 			foreach ($files_to_override as $fileToOverride => $overriderFolder)
 			{
-				if (JFactory::getApplication()->isAdmin())
+				if (Factory::getApplication()->isClient('administrator'))
 				{
 					if (strpos($fileToOverride, '/com_') === 0)
 					{
@@ -570,17 +581,17 @@ else
 				if (array_key_exists($fileToOverride, $originalInAdministrator)) {
 					$scope = '/administrator';
 				}
-				if (JFile::exists(JPATH_ROOT . $scope . $fileToOverride))
+				if (File::exists(JPATH_ROOT . $scope . $fileToOverride))
 				{
 					$originalFilePath = JPATH_ROOT . $scope . $fileToOverride;
 				}
-				elseif (strpos($fileToOverride, '/com_') === 0 && JFile::exists(JPATH_ROOT . '/components' . $fileToOverride))
+				elseif (strpos($fileToOverride, '/com_') === 0 && File::exists(JPATH_ROOT . '/components' . $fileToOverride))
 				{
 					$originalFilePath = JPATH_ROOT . '/components' . $fileToOverride;
 				}
 				else
 				{
-					JLog::add("Can see an overrider file ($overriderFolder" . "$fileToOverride) , but cannot find what to override", JLog::INFO, $this->plg_name);
+					Log::add("Can see an overrider file ($overriderFolder" . "$fileToOverride) , but cannot find what to override", Log::INFO, $this->plg_name);
 					continue;
 				}
 
@@ -654,16 +665,16 @@ else
 
 				// $replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . ' ';
 
-				// 
+				//
 
 				/**
 				 * A fix by Fexli <mailer@app.tempr.email>
-				 * 
+				 *
 				 * 2018-01-27 05:50:09
-				 * 
-				 * Even though it is usually doing its job pretty well i had some trouble 
-				 * overriding some classes with MCV Override. This was caused by the class name replacement: 
-				 * You always append a blank character to the string you want to replace. 
+				 *
+				 * Even though it is usually doing its job pretty well i had some trouble
+				 * overriding some classes with MCV Override. This was caused by the class name replacement:
+				 * You always append a blank character to the string you want to replace.
 				 * In case the class name is followed by a line break, the whole replacement fails:
 				 * 		class foo
 				 * 		{
@@ -673,20 +684,20 @@ else
 				 * 		$replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . ' ';
 				 * 		$bufferContent = str_replace($originalClass, $replaceClass, $bufferFile);
 				 */
-				
+
 
 				// Original class name is always followed by at least one whitespace character (new line, blank, ...)
-				
+
 				/** ##mygruz20180504031330 {
 				 * Athos Pieri <chakkos@yahoo.com> proposed to use the new pattern
 				It was:
-				$originalClass = '/class ' . trim($parts[1]) . '([\s]+\{)/'; 
+				$originalClass = '/class ' . trim($parts[1]) . '([\s]+\{)/';
 				It became: */
 				$originalClass = '/class ' . trim($parts[1]) . '([ |\n])/';
 				/** ##mygruz20180504031330 } */
 
 				// Append whitespace after new class name
-				$replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . '$1'; 
+				$replaceClass = 'class ' . trim(trim($parts[1])) . 'Default' . '$1';
 
 				/*
 				if (count($definesSourceOverride[0]) && false)
@@ -696,7 +707,7 @@ else
 						. 'JPATH_COMPONENT_ADMINISTRATOR -> JPATH_SOURCE_COMPONENT_ADMINISTRATOR';
 					throw new Exception(str_replace('<br />', PHP_EOL, $error), 500);
 
-					* // JFactory::getApplication()->enqueueMessage($error, 'error');
+					* // Factory::getApplication()->enqueueMessage($error, 'error');
 				}
 				else
 				{
@@ -705,9 +716,9 @@ else
 
 				// Replace original class name by default
 				// $bufferContent = str_replace($originalClass, $replaceClass, $bufferFile);
-				
+
 				// Use preg_replace instead of str_replace
-				$bufferContent = preg_replace($originalClass, $replaceClass, $bufferFile); 
+				$bufferContent = preg_replace($originalClass, $replaceClass, $bufferFile);
 
 				// Replace JPATH_COMPONENT constants if found, because we are loading before define these constants
 				if (count($definesSource[0]))
@@ -749,26 +760,26 @@ else
 			$restoreOriginalFile = function() use ($reserveFilePath, $originalFilePath) {
 				if (is_file($reserveFilePath) && !filesize($originalFilePath))
 				{
-					JFile::move($reserveFilePath, $originalFilePath);
+					File::move($reserveFilePath, $originalFilePath);
 				}
 			};
 
 			//$restoreOriginalFile();
 
-			$lck_file = JFactory::getApplication()->get('tmp_path') . "/mvcoverride-" . sha1_file($originalFilePath) . ".lck";
+			$lck_file = Factory::getApplication()->get('tmp_path') . "/mvcoverride-" . sha1_file($originalFilePath) . ".lck";
 
 			$fp = fopen($lck_file, "w");
 
 			// Acquire an exclusive lock
 			if (flock($fp, LOCK_EX))
 			{
-				if (!is_file($reserveFilePath) || !filesize($reserveFilePath)) 
+				if (!is_file($reserveFilePath) || !filesize($reserveFilePath))
 				{
-					JFile::move($originalFilePath, $reserveFilePath);
+					File::move($originalFilePath, $reserveFilePath);
 				}
 				file_put_contents($originalFilePath, '');
 				require $originalFilePath;
-				JFile::move($reserveFilePath, $originalFilePath);
+				File::move($reserveFilePath, $originalFilePath);
 
 				// Release the lock
 				flock($fp, LOCK_UN);
@@ -781,7 +792,7 @@ else
 			{
 				fclose($fp);
 			}
-			
+
 			//$restoreOriginalFile();
 		}
 
@@ -833,9 +844,9 @@ else
 			switch ($this->paramGet('showDebug'))
 			{
 				case '1':
-					$app = JFactory::getApplication();
+					$app = Factory::getApplication();
 
-					if ($app->isAdmin())
+					if ($app->isClient('administrator'))
 					{
 						break;
 					}
@@ -850,7 +861,7 @@ else
 					break;
 			}
 
-			JFactory::getApplication()->enqueueMessage($msg, $type);
+			Factory::getApplication()->enqueueMessage($msg, $type);
 
 			return;
 		}
@@ -871,10 +882,10 @@ else
 		/*
 		public function getOption()
 		{
-			$jinput = JFactory::getApplication()->input;
+			$jinput = Factory::getApplication()->input;
 			$option = $jinput->get('option', null);
 
-			if (empty($option) && JFactory::getApplication()->isSite())
+			if (empty($option) && Factory::getApplication()->isSite())
 			{
 				$parsed = $jinput->getArray();
 
@@ -882,7 +893,7 @@ else
 
 				if (empty($option))
 				{
-					$app = JFactory::getApplication();
+					$app = Factory::getApplication();
 
 					$router = $app->getRouter();
 					$uri     = JUri::getInstance();
@@ -894,10 +905,10 @@ else
 
 			*/
 				/*
-				$menuDefault = JFactory::getApplication()->getMenu()->getDefault();
+				$menuDefault = Factory::getApplication()->getMenu()->getDefault();
 				if (is_int($menuDefault) && $menuDefault == 0) return;
 				$componentID = $menuDefault->component_id;
-				$db = JFactory::getDBO();
+				$db = Factory::getDBO();
 				$db->setQuery('SELECT * FROM #__extensions WHERE extension_id ='.$db->quote($componentID));
 				$component = $db->loadObject();
 				$option = $component->element;
@@ -929,7 +940,7 @@ else
 				return false;
 			}
 
-			$app = JFactory::getApplication();
+			$app = Factory::getApplication();
 			$jinput = $app->input;
 
 			$includePaths = $this->_getIncludePaths();
@@ -944,9 +955,9 @@ else
 
 			foreach ($tmp as $key => $value) {
 				if ( 0 === $i ) {
-					$fileNamesToInclude[] = $value; 
+					$fileNamesToInclude[] = $value;
 				} else {
-					$fileNamesToInclude[] = $value . '_' . $fileNamesToInclude[$i -1]; 
+					$fileNamesToInclude[] = $value . '_' . $fileNamesToInclude[$i -1];
 				}
 
 				$i++;
@@ -971,7 +982,7 @@ else
 				{
 					$form_path = $includePath . '/' . $component . '/models/forms/' . $fileNameToInclude . '.xml';
 
-					if (JFile::exists($form_path))
+					if (File::exists($form_path))
 					{
 						$form_paths[] = $form_path;
 					}
@@ -1005,8 +1016,8 @@ else
 			// Template name
 
 			// This direct approach on some reason breaks megamenu on multilanguage web-sites
-			// ~ $template = JFactory::getApplication('site')->getTemplate();
-			$app = clone JFactory::getApplication();
+			// ~ $template = Factory::getApplication('site')->getTemplate();
+			$app = clone Factory::getApplication();
 			$template = $app->getTemplate();
 
 			// Code paths
@@ -1015,9 +1026,9 @@ else
 			// Template code path
 			$includePath[] = JPATH_THEMES . '/' . $template . '/code';
 
-			if (JFactory::getApplication()->isAdmin())
+			if (Factory::getApplication()->isClient('administrator'))
 			{
-				$db = JFactory::getDbo();
+				$db = Factory::getDbo();
 				$query = $db->getQuery(true);
 				$query->select('template');
 				$query->from($db->quoteName('#__template_styles'));
@@ -1055,7 +1066,7 @@ else
 
 			$last = end($bufferContent);
 
-			if (JString::trim($last) == '')
+			if (StringHelper::trim($last) == '')
 			{
 				array_pop($bufferContent);
 			}
